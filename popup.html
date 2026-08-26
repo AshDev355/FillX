@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FillX - Extension Core</title>
+  <style>
+    body {
+      width: 320px;
+      margin: 0;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      box-sizing: border-box;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 12px;
+    }
+    .header img {
+      width: 28px;
+      height: 28px;
+    }
+    .title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #818cf8;
+    }
+    .subtitle {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+    .status-card {
+      background: #1e293b;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 16px;
+      border: 1px solid #334155;
+    }
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+    .stat-row:last-child {
+      margin-bottom: 0;
+    }
+    .badge {
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+    .badge-matched { background: #065f46; color: #34d399; }
+    .badge-ambiguous { background: #78350f; color: #fbbf24; }
+    .badge-unmatched { background: #7f1d1d; color: #f87171; }
+    .badge-attention { background: #4338ca; color: #a5b4fc; }
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease, opacity 0.15s ease;
+    }
+    .btn-primary {
+      background: #6366f1;
+      color: #ffffff;
+    }
+    .btn-primary:hover { background: #4f46e5; }
+    .btn-secondary {
+      background: #334155;
+      color: #e2e8f0;
+    }
+    .btn-secondary:hover { background: #475569; }
+    .btn-danger {
+      background: transparent;
+      color: #94a3b8;
+      border: 1px solid #334155;
+    }
+    .btn-danger:hover { color: #f87171; border-color: #ef4444; }
+    .footer {
+      margin-top: 14px;
+      text-align: center;
+      font-size: 11px;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="icons/icon-48.png" alt="FillX Icon">
+    <div>
+      <div class="title">FillX Autofill</div>
+      <div class="subtitle">Member 1 Extension Core Engine</div>
+    </div>
+  </div>
+
+  <div class="status-card">
+    <div class="stat-row">
+      <span>Detected Fields:</span>
+      <strong id="stat-total">0</strong>
+    </div>
+    <div class="stat-row">
+      <span>Matched Fields:</span>
+      <span class="badge badge-matched" id="stat-matched">0</span>
+    </div>
+    <div class="stat-row">
+      <span>Ambiguous Fields:</span>
+      <span class="badge badge-ambiguous" id="stat-ambiguous">0</span>
+    </div>
+    <div class="stat-row">
+      <span>Unmatched Fields:</span>
+      <span class="badge badge-unmatched" id="stat-unmatched">0</span>
+    </div>
+    <div class="stat-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #334155;">
+      <span>Need Attention:</span>
+      <span class="badge badge-attention" id="stat-attention">0</span>
+    </div>
+  </div>
+
+  <div class="btn-group">
+    <button id="btn-autofill" class="btn-primary">⚡ Fill This Page</button>
+    <button id="btn-scan" class="btn-secondary">🔍 Scan Form Fields</button>
+    <button id="btn-clear" class="btn-danger">✕ Clear Highlights</button>
+  </div>
+
+  <div class="footer">Ready for Member 2/3/4 Integration</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
