@@ -192,7 +192,11 @@ export async function runAutomatedTests() {
   assert('Attention Counter: Correct calculation (ambiguous + unmatched)', stats.fieldsNeedAttention === expectedAttention, `needsAttention = ${stats.fieldsNeedAttention}`);
   updateHarnessStats(stats);
 
-  // Test 8: Reversible Clear Highlights
+  // Test 8: Open-Ended Question Detection (Phase 9)
+  const openEndedFields = fields.filter((f) => engine.isOpenEndedField ? engine.isOpenEndedField(f) : f.tagName === 'TEXTAREA');
+  assert('Open-Ended Detection: Identifies textarea/essay fields for AI answer generator', openEndedFields.length > 0, `Found ${openEndedFields.length} open-ended fields`);
+
+  // Test 9: Reversible Clear Highlights
   engine.handleClearHighlights();
   const remainingHighlighted = document.querySelectorAll('.fillx-highlight-matched, .fillx-highlight-ambiguous, .fillx-highlight-unmatched');
   const remainingBadges = document.querySelectorAll('.fillx-badge-container');

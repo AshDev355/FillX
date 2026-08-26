@@ -2,9 +2,10 @@
  * serviceWorker.js — Manifest V3 Background Service Worker
  *
  * Responsibilities:
- * - Relays requests between Popup UI, Content Script, and Backend (/api/match)
+ * - Relays requests between Popup UI, Content Script, and Backend (/api/match & /api/generate)
  * - Retrieves user profile from chrome.storage.local
  * - Forwards matching results to active tab for autofill
+ * - Handles GENERATE_ANSWER requests for Phase 9 keyword-to-answer generator
  * - Provides offline test adapter fallback when backend is unavailable
  * - Updates extension action badge count for fields needing attention
  * - Handles SAVE_CUSTOM_FIELD events from content script to chrome.storage.local
@@ -12,7 +13,8 @@
 
 import { MESSAGE_TYPES, MATCH_STATUS } from '../shared/messageTypes.js';
 
-const BACKEND_URL = 'http://localhost:3000/api/match';
+const BACKEND_MATCH_URL = 'http://localhost:3000/api/match';
+const BACKEND_GENERATE_URL = 'http://localhost:3000/api/generate';
 
 /**
  * Retrieves the stored profile from chrome.storage.local.
@@ -52,11 +54,10 @@ async function updateBadge(attentionCount, tabId = null) {
 
 /**
  * Local heuristic matching adapter used when backend is offline or in test mode.
- * Matches common form field clues against the user profile.
  *
  * @param {Array<object>} fields
  * @param {object} profile
- * @returns {Array<object>} Matching results array
+ * @returns {Array<object>}
  */
 export function generateLocalMockMatches(fields, profile) {
   if (!Array.isArray(fields)) return [];
@@ -180,7 +181,6 @@ export function generateLocalMockMatches(fields, profile) {
       }
     }
 
-    // Check for ambiguous status (e.g. uncertain matches or ambiguous field labels)
     if (clues.includes('preferred') || clues.includes('alternate') || clues.includes('additional') || clues.includes('optional note')) {
       if (value) {
         status = MATCH_STATUS.AMBIGUOUS;
@@ -209,7 +209,7 @@ export function generateLocalMockMatches(fields, profile) {
  */
 async function performMatch(fields, profile) {
   try {
-    const response = await fetch(BACKEND_URL, {
+    const response = await fetch(BACKEND_MATCH_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fields, profile }),
@@ -226,8 +226,42 @@ async function performMatch(fields, profile) {
     console.info('FillX Background: Backend /api/match unavailable (offline/dev). Using local mock matcher.');
   }
 
-  // Fallback to local heuristic matching adapter
   return generateLocalMockMatches(fields, profile);
+}
+
+/**
+ * Calls backend /api/generate for open-ended keyword-to-answer generation.
+ *
+ * @param {string} question
+ * @param {string} keywords
+ * @param {object} profile
+ * @returns {Promise<string>}
+ */
+async function performGenerateAnswer(question, keywords, profile) {
+  try {
+    const response = await fetch(BACKEND_GENERATE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question, keywords, profile }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data?.answer) {
+        return data.answer;
+      }
+    }
+  } catch (err) {
+    console.info('FillX Background: Backend /api/generate unavailable. Using local synthesizer.');
+  }
+
+  // Fallback local answer synthesizer
+  const p = profile || {};
+  const exp = Array.isArray(p.experience) && p.experience[0];
+  const role = exp?.title || 'Software Professional';
+  const comp = exp?.company || 'my recent role';
+
+  return `Throughout my career as a ${role} at ${comp}, I have developed deep expertise in ${keywords}. When addressing "${question}", I leverage these core competencies to deliver consistent, high-impact results. I look forward to applying my problem-solving skills and technical background to contribute effectively to your team.`;
 }
 
 // ─── Runtime Message Router ──────────────────────────────────────────────────
@@ -236,17 +270,12 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (!message || !message.type) return false;
 
-    // Handle asynchronous actions inside self-invoking async IIFE
     (async () => {
       try {
         switch (message.type) {
           case MESSAGE_TYPES.MATCH_FIELDS: {
             const fields = message.payload?.fields || [];
-            let profile = message.payload?.profile;
-
-            if (!profile) {
-              profile = await getStoredProfile();
-            }
+            let profile = message.payload?.profile || await getStoredProfile();
 
             const results = await performMatch(fields, profile);
             sendResponse({ success: true, results });
@@ -254,31 +283,26 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
           }
 
           case MESSAGE_TYPES.AUTOFILL_PAGE: {
-            // Forward autofill request to content script in the active tab
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             if (!tab?.id) {
               sendResponse({ success: false, error: 'No active tab found.' });
               return;
             }
 
-            // 1. Ask content script to scan fields if not provided
             let fields = message.payload?.fields;
             if (!fields) {
               const scanRes = await chrome.tabs.sendMessage(tab.id, { type: MESSAGE_TYPES.SCAN_PAGE });
               fields = scanRes?.fields || [];
             }
 
-            // 2. Perform matching
             let profile = message.payload?.profile || await getStoredProfile();
             const results = await performMatch(fields, profile);
 
-            // 3. Command content script to execute autofill
             const fillRes = await chrome.tabs.sendMessage(tab.id, {
               type: MESSAGE_TYPES.AUTOFILL_PAGE,
               payload: { results },
             });
 
-            // 4. Update badge with attention count
             if (fillRes?.stats?.fieldsNeedAttention !== undefined) {
               await updateBadge(fillRes.stats.fieldsNeedAttention, tab.id);
             }
@@ -291,8 +315,15 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
             break;
           }
 
+          case MESSAGE_TYPES.GENERATE_ANSWER: {
+            const { question, keywords } = message.payload || {};
+            const profile = await getStoredProfile();
+            const answer = await performGenerateAnswer(question, keywords, profile);
+            sendResponse({ success: true, answer });
+            break;
+          }
+
           case MESSAGE_TYPES.SAVE_CUSTOM_FIELD: {
-            // Member 4 storage integration
             const { key, value } = message.payload || {};
             if (key && value && chrome.storage?.local) {
               const data = await chrome.storage.local.get(['profile', 'fieldCache']);
@@ -331,6 +362,6 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
       }
     })();
 
-    return true; // Keep message port open for async response
+    return true;
   });
 }

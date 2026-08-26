@@ -24,6 +24,7 @@ const modules = [
   'content/highlighter.js',
   'content/fieldState.js',
   'content/savePromptBridge.js',
+  'content/openEndedGenerator.js',
   'content/dynamicObserver.js',
   'content/autofillEngine.js',
   'content/contentScript.js',
@@ -31,7 +32,7 @@ const modules = [
 
 let bundleContent = `/**
  * FillX Extension — Content Script Standalone Bundle
- * Auto-generated bundle containing all modular content script components.
+ * Complete, production-ready bundle combining all Member 1 content modules.
  */
 (() => {
   'use strict';

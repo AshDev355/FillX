@@ -2,7 +2,8 @@
  * contentScript.js — Main Content Script Entry Point & Message Router
  *
  * Coordinates webpage form field detection, autofill execution, highlighting,
- * dynamic mutation observation, and communication with the background worker / popup.
+ * open-ended answer generator attachment, dynamic mutation observation,
+ * and communication with the background worker / popup.
  */
 
 import { detectFormFields } from './fieldDetector.js';
@@ -11,6 +12,7 @@ import { executeAutofill } from './autofillEngine.js';
 import { fieldState } from './fieldState.js';
 import { clearAllHighlights, injectHighlighterStyles } from './highlighter.js';
 import { dynamicObserver } from './dynamicObserver.js';
+import { attachGenerateAnswerButtons, removeGenerateAnswerButtons } from './openEndedGenerator.js';
 import { MESSAGE_TYPES } from '../shared/messageTypes.js';
 
 // Initialize styles immediately on content script load
@@ -25,6 +27,9 @@ export function handleScanPage() {
   const fields = detectFormFields(document);
   fieldState.setDetectedFields(fields);
   const stats = fieldState.getStats();
+
+  // Attach Phase 9 "✨ Generate answer" triggers to open-ended fields
+  attachGenerateAnswerButtons(fields);
 
   return {
     fields,
@@ -55,6 +60,7 @@ export function handleAutofillPage(results) {
  */
 export function handleClearHighlights() {
   clearAllHighlights();
+  removeGenerateAnswerButtons();
   return {
     success: true,
     stats: fieldState.getStats(),
