@@ -1,0 +1,87 @@
+/* FillX Highlighter Styles */
+
+:root {
+  --fillx-matched-color: #10b981;
+  --fillx-matched-bg: rgba(16, 185, 129, 0.08);
+  --fillx-matched-glow: rgba(16, 185, 129, 0.25);
+
+  --fillx-ambiguous-color: #f59e0b;
+  --fillx-ambiguous-bg: rgba(245, 158, 11, 0.08);
+  --fillx-ambiguous-glow: rgba(245, 158, 11, 0.25);
+
+  --fillx-unmatched-color: #ef4444;
+  --fillx-unmatched-bg: rgba(239, 68, 68, 0.08);
+  --fillx-unmatched-glow: rgba(239, 68, 68, 0.25);
+}
+
+.fillx-highlight-matched {
+  outline: 2px solid var(--fillx-matched-color) !important;
+  outline-offset: 1px !important;
+  background-color: var(--fillx-matched-bg) !important;
+  box-shadow: 0 0 6px var(--fillx-matched-glow) !important;
+  transition: outline 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.fillx-highlight-ambiguous {
+  outline: 2px solid var(--fillx-ambiguous-color) !important;
+  outline-offset: 1px !important;
+  background-color: var(--fillx-ambiguous-bg) !important;
+  box-shadow: 0 0 6px var(--fillx-ambiguous-glow) !important;
+  transition: outline 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.fillx-highlight-unmatched {
+  outline: 2px dashed var(--fillx-unmatched-color) !important;
+  outline-offset: 1px !important;
+  background-color: var(--fillx-unmatched-bg) !important;
+  box-shadow: 0 0 6px var(--fillx-unmatched-glow) !important;
+  transition: outline 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+/* Floating Status Badges */
+.fillx-badge-container {
+  position: absolute;
+  z-index: 999990;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+  animation: fillx-badge-fade-in 0.2s ease-out;
+  transform: translateY(-50%);
+}
+
+.fillx-badge-matched {
+  background-color: #065f46;
+  color: #a7f3d0;
+  border: 1px solid #10b981;
+}
+
+.fillx-badge-ambiguous {
+  background-color: #78350f;
+  color: #fde68a;
+  border: 1px solid #f59e0b;
+}
+
+.fillx-badge-unmatched {
+  background-color: #7f1d1d;
+  color: #fecaca;
+  border: 1px solid #ef4444;
+}
+
+@keyframes fillx-badge-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-40%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%);
+  }
+}

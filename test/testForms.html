@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FillX Autofill Test Harness & Benchmark Forms</title>
+  <link rel="stylesheet" href="../dist/highlighter.css">
+  <style>
+    :root {
+      --bg-main: #0b0f19;
+      --bg-card: #111827;
+      --border-color: #1f2937;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      margin: 0;
+      padding: 24px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 16px;
+    }
+
+    h1 {
+      margin: 0 0 8px 0;
+      color: #818cf8;
+      font-size: 24px;
+    }
+
+    p.subtitle {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* Test Controls Bar */
+    .control-panel {
+      background: #1e1b4b;
+      border: 1px solid #4338ca;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    button {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-run-tests { background: var(--primary); color: white; }
+    .btn-run-tests:hover { background: var(--primary-hover); }
+
+    .btn-autofill { background: var(--success); color: white; }
+    .btn-autofill:hover { background: #059669; }
+
+    .btn-scan { background: #374151; color: white; }
+    .btn-scan:hover { background: #4b5563; }
+
+    .btn-clear { background: transparent; border: 1px solid #4b5563; color: var(--text-muted); }
+    .btn-clear:hover { color: var(--danger); border-color: var(--danger); }
+
+    .btn-add-dynamic { background: #0284c7; color: white; }
+    .btn-add-dynamic:hover { background: #0369a1; }
+
+    /* Test Results Dashboard */
+    #test-results-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      display: none;
+    }
+
+    .test-summary {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .test-log {
+      font-family: monospace;
+      font-size: 12px;
+      max-height: 250px;
+      overflow-y: auto;
+      padding: 10px;
+      background: #030712;
+      border-radius: 6px;
+    }
+
+    .test-pass { color: var(--success); }
+    .test-fail { color: var(--danger); font-weight: bold; }
+    .test-info { color: #38bdf8; }
+
+    /* Forms Section Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 16px;
+      color: #c7d2fe;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="number"],
+    input[type="date"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 8px 12px;
+      background: #1f2937;
+      border: 1px solid #374151;
+      border-radius: 6px;
+      color: white;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+    }
+
+    .checkbox-group, .radio-group {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin-top: 6px;
+    }
+
+    .checkbox-group label, .radio-group label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      color: var(--text-main);
+    }
+
+    .state-indicator {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>FillX Member 1 Test Harness</h1>
+      <p class="subtitle">Complete functional verification suite for form detection, React/Vue value setters, autofill engine, and highlighting.</p>
+    </header>
+
+    <!-- Top Action Panel -->
+    <div class="control-panel">
+      <div class="btn-row">
+        <button id="btn-run-tests" class="btn-run-tests">▶ Run Automated Unit Tests</button>
+        <button id="btn-autofill-mock" class="btn-autofill">⚡ Execute Mock Autofill</button>
+        <button id="btn-scan-harness" class="btn-scan">🔍 Scan Form Fields</button>
+        <button id="btn-clear-harness" class="btn-clear">✕ Clear Highlights</button>
+        <button id="btn-add-dynamic" class="btn-add-dynamic">+ Inject Dynamic Field</button>
+      </div>
+      <div id="stats-badge" style="font-size: 13px; color: #a5b4fc;">
+        Fields Detected: <strong id="harness-total-count">0</strong> | Needs Attention: <strong id="harness-attention-count">0</strong>
+      </div>
+    </div>
+
+    <!-- Automated Test Log Dashboard -->
+    <div id="test-results-panel">
+      <div id="test-summary" class="test-summary">Running test suite...</div>
+      <div id="test-log" class="test-log"></div>
+    </div>
+
+    <!-- Benchmark Forms Grid -->
+    <div class="grid">
+      <!-- Section 1: Standard Personal Information -->
+      <div class="card">
+        <h2>1. Personal & Contact Details (Standard)</h2>
+        <form id="form-personal" onsubmit="return false;">
+          <div class="form-group">
+            <label for="first_name">First Name</label>
+            <input type="text" id="first_name" name="first_name" placeholder="e.g. John" required>
+          </div>
+
+          <div class="form-group">
+            <label for="last_name">Last Name</label>
+            <input type="text" id="last_name" name="last_name" placeholder="e.g. Doe" required>
+          </div>
+
+          <div class="form-group">
+            <label for="user_email">Email Address</label>
+            <input type="email" id="user_email" name="user_email" placeholder="john@example.com" required>
+          </div>
+
+          <div class="form-group">
+            <label for="phone_number">Phone Number</label>
+            <input type="tel" id="phone_number" name="phone_number" placeholder="+1 (555) 000-0000">
+          </div>
+
+          <div class="form-group">
+            <label for="dob">Date of Birth</label>
+            <input type="date" id="dob" name="dob">
+          </div>
+        </form>
+      </div>
+
+      <!-- Section 2: Address & Dropdown Selects -->
+      <div class="card">
+        <h2>2. Address & Dropdowns</h2>
+        <form id="form-address" onsubmit="return false;">
+          <div class="form-group">
+            <label for="street_address">Street Address</label>
+            <input type="text" id="street_address" name="street_address" placeholder="123 Main St">
+          </div>
+
+          <div class="form-group">
+            <label for="city">City</label>
+            <input type="text" id="city" name="city" placeholder="City">
+          </div>
+
+          <div class="form-group">
+            <label for="country_select">Country (Select Dropdown)</label>
+            <select id="country_select" name="country_select">
+              <option value="">-- Select Country --</option>
+              <option value="United States">United States</option>
+              <option value="Canada">Canada</option>
+              <option value="United Kingdom">United Kingdom</option>
+              <option value="Germany">Germany</option>
+              <option value="Australia">Australia</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="zip_code">ZIP / Postal Code</label>
+            <input type="text" id="zip_code" name="zip_code" placeholder="90210">
+          </div>
+        </form>
+      </div>
+
+      <!-- Section 3: React / Vue Controlled Input Simulation -->
+      <div class="card">
+        <h2>3. React & Vue Controlled Simulation</h2>
+        <form id="form-reactive" onsubmit="return false;">
+          <div class="form-group">
+            <label for="react_company">React Controlled: Company</label>
+            <input type="text" id="react_company" name="react_company" placeholder="Current or Previous Employer">
+            <div id="react_state_display" class="state-indicator">React State: <span style="color:#60a5fa;">[empty]</span></div>
+          </div>
+
+          <div class="form-group">
+            <label for="vue_job_title">Vue Controlled: Job Title</label>
+            <input type="text" id="vue_job_title" name="vue_job_title" placeholder="Job Title / Position">
+            <div id="vue_state_display" class="state-indicator">Vue State: <span style="color:#34d399;">[empty]</span></div>
+          </div>
+
+          <div class="form-group">
+            <label>Work Authorization (Radio Group)</label>
+            <div class="radio-group">
+              <label><input type="radio" name="work_auth" value="Citizen" checked> Citizen</label>
+              <label><input type="radio" name="work_auth" value="Visa"> Visa / Work Permit</label>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Section 4: Ambiguous, Unmatched & Open-Ended Fields -->
+      <div class="card">
+        <h2>4. Ambiguous, Unmatched & Textarea</h2>
+        <form id="form-edge-cases" onsubmit="return false;">
+          <div class="form-group">
+            <label for="ambiguous_notes">Ambiguous Field: Additional Notes / Why Us?</label>
+            <textarea id="ambiguous_notes" name="ambiguous_notes" rows="3" placeholder="Describe why you are interested in this position..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="unmatched_clearance">Unmatched Field: Security Clearance Level</label>
+            <input type="text" id="unmatched_clearance" name="unmatched_clearance" placeholder="e.g. Top Secret (Not in profile)">
+          </div>
+
+          <div class="form-group">
+            <label for="custom_salary">Custom Field: Desired Salary</label>
+            <input type="text" id="custom_salary" name="custom_salary" placeholder="$100k+">
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Dynamic Fields Insertion Container -->
+    <div id="dynamic-fields-container" style="margin-top: 20px;"></div>
+  </div>
+
+  <!-- Load Content Script Bundle -->
+  <script src="../dist/contentScript.bundle.js"></script>
+  <!-- Load Test Runner & Mock Data -->
+  <script type="module" src="testRunner.js"></script>
+
+  <!-- Interactive React/Vue State Listener Simulation -->
+  <script>
+    // Simulate React Controlled State Binding
+    const reactInput = document.getElementById('react_company');
+    const reactDisplay = document.getElementById('react_state_display');
+    let simulatedReactState = '';
+
+    // React intercepts the value setter
+    let reactInternalValue = '';
+    Object.defineProperty(reactInput, '_valueTracker', {
+      value: {
+        getValue: () => reactInternalValue,
+        setValue: (v) => { reactInternalValue = v; }
+      },
+      writable: true,
+      configurable: true,
+    });
+
+    reactInput.addEventListener('input', (e) => {
+      simulatedReactState = e.target.value;
+      reactDisplay.innerHTML = `React State: <span style="color:#60a5fa; font-weight:bold;">${simulatedReactState || '[empty]'}</span>`;
+    });
+
+    // Simulate Vue v-model Reactive Binding
+    const vueInput = document.getElementById('vue_job_title');
+    const vueDisplay = document.getElementById('vue_state_display');
+    let simulatedVueState = '';
+
+    vueInput.addEventListener('input', (e) => {
+      simulatedVueState = e.target.value;
+      vueDisplay.innerHTML = `Vue State: <span style="color:#34d399; font-weight:bold;">${simulatedVueState || '[empty]'}</span>`;
+    });
+  </script>
+</body>
+</html>
