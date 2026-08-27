@@ -1,0 +1,28 @@
+{
+  "name": "fillx-extension",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI-Powered intelligent autofill Chrome extension for forms and job applications.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build:content": "node build.js",
+    "build:popup": "vite build",
+    "build": "node build.js && vite build",
+    "test": "node test/unitTests.test.js"
+  },
+  "dependencies": {
+    "jszip": "^3.10.1",
+    "lucide-react": "^0.469.0",
+    "mammoth": "^1.12.1",
+    "pdfjs-dist": "^6.2.108",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.0.5"
+  }
+}

@@ -1,0 +1,67 @@
+/**
+ * highlighter.css — Visual Status Highlighting and Floating Badges
+ */
+
+.fillx-highlight-matched {
+  outline: 2px solid #10b981 !important;
+  outline-offset: 1px !important;
+  background-color: rgba(16, 185, 129, 0.08) !important;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.25) !important;
+  transition: outline 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.fillx-highlight-ambiguous {
+  outline: 2px solid #f59e0b !important;
+  outline-offset: 1px !important;
+  background-color: rgba(245, 158, 11, 0.08) !important;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.25) !important;
+  transition: outline 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.fillx-highlight-unmatched {
+  outline: 2px dashed #ef4444 !important;
+  outline-offset: 1px !important;
+  background-color: rgba(239, 68, 68, 0.08) !important;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.25) !important;
+  transition: outline 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.fillx-badge-container {
+  position: absolute;
+  z-index: 999990;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 3px 7px;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+  animation: fillx-badge-fade 0.2s ease-out;
+}
+
+.fillx-badge-matched {
+  background-color: #065f46;
+  color: #a7f3d0;
+  border: 1px solid #10b981;
+}
+
+.fillx-badge-ambiguous {
+  background-color: #78350f;
+  color: #fde68a;
+  border: 1px solid #f59e0b;
+}
+
+.fillx-badge-unmatched {
+  background-color: #7f1d1d;
+  color: #fecaca;
+  border: 1px solid #ef4444;
+}
+
+@keyframes fillx-badge-fade {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
