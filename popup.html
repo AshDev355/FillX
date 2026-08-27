@@ -3,142 +3,638 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FillX - Extension Core</title>
+  <title>FillX - AI Autofill</title>
   <style>
-    body {
-      width: 320px;
-      margin: 0;
-      padding: 16px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: #0f172a;
-      color: #f8fafc;
-      box-sizing: border-box;
+    :root {
+      --bg-cream: #fbf9f5;
+      --bg-card: #ffffff;
+      --border-warm: #ede8e1;
+      --text-dark: #1f1d1a;
+      --text-muted: #78716c;
+      --primary-maroon: #4a101d;
+      --primary-maroon-hover: #380c16;
+      --accent-matched: #15803d;
+      --accent-matched-bg: #f0fdf4;
+      --accent-ambiguous: #b45309;
+      --accent-ambiguous-bg: #fefce8;
+      --accent-unmatched: #b91c1c;
+      --accent-unmatched-bg: #fef2f2;
     }
-    .header {
+
+    * { box-sizing: border-box; }
+
+    body {
+      width: 360px;
+      min-height: 520px;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg-cream);
+      color: var(--text-dark);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top App Header */
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-warm);
+    }
+
+    .brand-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--primary-maroon);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .brand-title img {
+      width: 22px;
+      height: 22px;
+    }
+
+    /* Tab Content Area */
+    .screen-container {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      max-height: 440px;
+    }
+
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+      animation: fadeIn 0.15s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(2px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Screen 1: Upload Prompt */
+    .upload-hero {
+      text-align: center;
+      padding: 10px 0;
+    }
+
+    .upload-icon-box {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 12px;
+      background: #fdf2f4;
+      border: 1px solid #fce7eb;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+    }
+
+    .upload-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin: 0 0 6px 0;
+    }
+
+    .upload-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin: 0 0 16px 0;
+      line-height: 1.4;
+      padding: 0 8px;
+    }
+
+    /* File Drop Area */
+    .drop-zone {
+      border: 2px dashed #d6cfc7;
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+      background: #ffffff;
+      cursor: pointer;
+      margin-bottom: 12px;
+      transition: all 0.15s ease;
+    }
+
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--primary-maroon);
+      background: #faf6f0;
+    }
+
+    .drop-zone-text {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    .btn-maroon {
+      width: 100%;
+      padding: 11px 16px;
+      background: var(--primary-maroon);
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.15s ease;
+    }
+
+    .btn-maroon:hover {
+      background: var(--primary-maroon-hover);
+    }
+
+    .or-divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 14px 0;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .or-divider::before, .or-divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--border-warm);
+    }
+
+    .or-divider span {
+      padding: 0 8px;
+    }
+
+    .btn-manual-card {
+      width: 100%;
+      background: #ffffff;
+      border: 1px solid var(--border-warm);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: left;
+      cursor: pointer;
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 16px;
-      border-bottom: 1px solid #334155;
-      padding-bottom: 12px;
+      transition: all 0.15s ease;
     }
-    .header img {
-      width: 28px;
-      height: 28px;
+
+    .btn-manual-card:hover {
+      border-color: var(--primary-maroon);
+      background: #faf6f0;
     }
-    .title {
-      font-size: 16px;
+
+    .btn-manual-icon {
+      font-size: 20px;
+      color: var(--primary-maroon);
+    }
+
+    .btn-manual-title {
+      font-size: 12px;
       font-weight: 700;
-      color: #818cf8;
+      color: var(--text-dark);
     }
-    .subtitle {
+
+    .btn-manual-subtitle {
       font-size: 11px;
-      color: #94a3b8;
+      color: var(--text-muted);
+      margin-top: 2px;
     }
+
+    /* Screen 2: Processing State */
+    .processing-card {
+      background: #ffffff;
+      border: 1px solid var(--border-warm);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .file-chip {
+      background: #fbf9f5;
+      border: 1px solid var(--border-warm);
+      border-radius: 6px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      text-align: left;
+    }
+
+    .file-chip-title {
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .file-chip-size {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 6px;
+      background: #e7e2d9;
+      border-radius: 3px;
+      overflow: hidden;
+      margin: 12px 0 8px;
+    }
+
+    .progress-bar-fill {
+      width: 0%;
+      height: 100%;
+      background: var(--primary-maroon);
+      transition: width 0.3s ease;
+    }
+
+    /* Screen 3: Profile Editor / Data Preview */
+    .section-header {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary-maroon);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 12px 0 8px;
+      border-bottom: 1px solid var(--border-warm);
+      padding-bottom: 4px;
+    }
+
+    .form-row {
+      margin-bottom: 10px;
+    }
+
+    .form-row label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+
+    .form-row input, .form-row textarea {
+      width: 100%;
+      padding: 8px 10px;
+      font-size: 12px;
+      border: 1px solid var(--border-warm);
+      border-radius: 5px;
+      background: #ffffff;
+      color: var(--text-dark);
+      outline: none;
+    }
+
+    .form-row input:focus, .form-row textarea:focus {
+      border-color: var(--primary-maroon);
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    /* Screen 4: Fill Tab */
     .status-card {
-      background: #1e293b;
+      background: #ffffff;
+      border: 1px solid var(--border-warm);
       border-radius: 8px;
       padding: 12px;
-      margin-bottom: 16px;
-      border: 1px solid #334155;
+      margin-bottom: 14px;
     }
+
     .stat-row {
       display: flex;
       justify-content: space-between;
-      font-size: 13px;
+      align-items: center;
+      font-size: 12px;
       margin-bottom: 6px;
+      color: var(--text-muted);
     }
-    .stat-row:last-child {
-      margin-bottom: 0;
-    }
+
     .badge {
+      font-size: 11px;
       font-weight: 700;
       padding: 2px 6px;
       border-radius: 4px;
-      font-size: 11px;
     }
-    .badge-matched { background: #065f46; color: #34d399; }
-    .badge-ambiguous { background: #78350f; color: #fbbf24; }
-    .badge-unmatched { background: #7f1d1d; color: #f87171; }
-    .badge-attention { background: #4338ca; color: #a5b4fc; }
-    .btn-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    button {
+
+    .badge-matched { background: var(--accent-matched-bg); color: var(--accent-matched); border: 1px solid #bbf7d0; }
+    .badge-ambiguous { background: var(--accent-ambiguous-bg); color: var(--accent-ambiguous); border: 1px solid #fef08a; }
+    .badge-unmatched { background: var(--accent-unmatched-bg); color: var(--accent-unmatched); border: 1px solid #fecaca; }
+    .badge-attention { background: #fdf2f8; color: #9d174d; border: 1px solid #fbcfe8; }
+
+    .btn-secondary {
       width: 100%;
-      padding: 10px;
+      padding: 9px;
+      background: #ffffff;
+      color: var(--text-dark);
+      border: 1px solid var(--border-warm);
       border-radius: 6px;
-      border: none;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.15s ease, opacity 0.15s ease;
+      margin-top: 8px;
     }
-    .btn-primary {
-      background: #6366f1;
+
+    .btn-secondary:hover { background: #f5f1ea; }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+      display: flex;
+      background: #ffffff;
+      border-top: 1px solid var(--border-warm);
+      padding: 6px 0;
+    }
+
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 4px 0;
+      transition: color 0.15s ease;
+    }
+
+    .nav-item.active {
+      color: var(--primary-maroon);
+    }
+
+    .nav-icon {
+      font-size: 16px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--primary-maroon);
       color: #ffffff;
-    }
-    .btn-primary:hover { background: #4f46e5; }
-    .btn-secondary {
-      background: #334155;
-      color: #e2e8f0;
-    }
-    .btn-secondary:hover { background: #475569; }
-    .btn-danger {
-      background: transparent;
-      color: #94a3b8;
-      border: 1px solid #334155;
-    }
-    .btn-danger:hover { color: #f87171; border-color: #ef4444; }
-    .footer {
-      margin-top: 14px;
-      text-align: center;
       font-size: 11px;
-      color: #64748b;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      display: none;
+      z-index: 9999;
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <img src="icons/icon-48.png" alt="FillX Icon">
-    <div>
-      <div class="title">FillX Autofill</div>
-      <div class="subtitle">Member 1 Extension Core Engine</div>
+
+  <!-- Top Brand Header -->
+  <div class="app-header">
+    <div class="brand-title">
+      <img src="icons/icon-48.png" alt="FillX Icon">
+      <span>FillX</span>
     </div>
+    <button id="btn-quick-sample" style="background:#f5f1ea;border:1px solid #d6cfc7;border-radius:4px;padding:3px 8px;font-size:10px;font-weight:600;cursor:pointer;color:#4a101d;">⚡ Load Sample</button>
   </div>
 
-  <div class="status-card">
-    <div class="stat-row">
-      <span>Detected Fields:</span>
-      <strong id="stat-total">0</strong>
+  <div class="screen-container">
+
+    <!-- SCREEN 1: UPLOAD SCREEN -->
+    <div id="screen-upload" class="screen active">
+      <div class="upload-hero">
+        <div class="upload-icon-box">📄</div>
+        <h2 class="upload-title">Add your info once</h2>
+        <p class="upload-desc">Upload your resume, document, or JSON profile to automatically extract your details and auto-fill every web form.</p>
+      </div>
+
+      <!-- File Input Drop Zone -->
+      <div id="drop-zone" class="drop-zone">
+        <div style="font-size: 24px; color: var(--primary-maroon);">📁</div>
+        <div style="font-weight: 700; font-size: 13px; margin-top: 4px;">Click to Upload Resume / Doc</div>
+        <div class="drop-zone-text">Supports PDF, DOCX, TXT, or JSON profile</div>
+        <input type="file" id="file-input" accept=".pdf,.docx,.txt,.json" style="display: none;">
+      </div>
+
+      <button id="btn-trigger-upload" class="btn-maroon">
+        <span>📄</span> UPLOAD DOCUMENT
+      </button>
+
+      <div class="or-divider"><span>OR</span></div>
+
+      <div id="btn-go-manual" class="btn-manual-card">
+        <div class="btn-manual-icon">✏️</div>
+        <div>
+          <div class="btn-manual-title">VIEW / EDIT PROFILE MANUALLY</div>
+          <div class="btn-manual-subtitle">Edit name, contact, address & work history</div>
+        </div>
+      </div>
     </div>
-    <div class="stat-row">
-      <span>Matched Fields:</span>
-      <span class="badge badge-matched" id="stat-matched">0</span>
+
+    <!-- SCREEN 2: PROCESSING SCREEN -->
+    <div id="screen-processing" class="screen">
+      <div class="processing-card">
+        <div class="file-chip">
+          <span style="font-size: 20px;">📄</span>
+          <div>
+            <div id="proc-file-name" class="file-chip-title">resume.pdf</div>
+            <div id="proc-file-size" class="file-chip-size">Extracted via FillX AI Engine</div>
+          </div>
+        </div>
+
+        <h3 style="margin: 0 0 6px 0; font-size: 15px; color: var(--text-dark);">Extracting Insights</h3>
+        <p style="margin: 0; font-size: 11px; color: var(--text-muted);">Applying structured profile extraction models...</p>
+
+        <div class="progress-bar-container">
+          <div id="proc-progress-bar" class="progress-bar-fill"></div>
+        </div>
+        <div id="proc-percent" style="font-size: 11px; font-weight: 700; color: var(--primary-maroon);">0% COMPLETE</div>
+      </div>
     </div>
-    <div class="stat-row">
-      <span>Ambiguous Fields:</span>
-      <span class="badge badge-ambiguous" id="stat-ambiguous">0</span>
+
+    <!-- SCREEN 3: EDIT PROFILE / DATA PREVIEW -->
+    <div id="screen-profile" class="screen">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <span style="font-size: 13px; font-weight: 700; color: var(--primary-maroon);">✏️ Stored Profile Details</span>
+        <button id="btn-clear-profile" style="background:transparent;border:none;color:#b91c1c;font-size:11px;font-weight:600;cursor:pointer;">Reset</button>
+      </div>
+
+      <form id="profile-form">
+        <div class="section-header">Personal Information</div>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="prof_firstName">First Name</label>
+            <input type="text" id="prof_firstName" placeholder="John">
+          </div>
+          <div class="form-row">
+            <label for="prof_lastName">Last Name</label>
+            <input type="text" id="prof_lastName" placeholder="Doe">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="prof_fullName">Full Name</label>
+          <input type="text" id="prof_fullName" placeholder="John Doe">
+        </div>
+
+        <div class="two-col">
+          <div class="form-row">
+            <label for="prof_email">Email Address</label>
+            <input type="email" id="prof_email" placeholder="john@example.com">
+          </div>
+          <div class="form-row">
+            <label for="prof_phone">Phone Number</label>
+            <input type="tel" id="prof_phone" placeholder="+1 555-0199">
+          </div>
+        </div>
+
+        <div class="section-header">Address Details</div>
+        <div class="form-row">
+          <label for="prof_street">Street Address</label>
+          <input type="text" id="prof_street" placeholder="123 Main St">
+        </div>
+
+        <div class="two-col">
+          <div class="form-row">
+            <label for="prof_city">City</label>
+            <input type="text" id="prof_city" placeholder="New York">
+          </div>
+          <div class="form-row">
+            <label for="prof_state">State</label>
+            <input type="text" id="prof_state" placeholder="NY">
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="form-row">
+            <label for="prof_zip">ZIP / Postal Code</label>
+            <input type="text" id="prof_zip" placeholder="10001">
+          </div>
+          <div class="form-row">
+            <label for="prof_country">Country</label>
+            <input type="text" id="prof_country" placeholder="United States">
+          </div>
+        </div>
+
+        <div class="section-header">Professional & Education</div>
+        <div class="form-row">
+          <label for="prof_company">Recent Company</label>
+          <input type="text" id="prof_company" placeholder="Acme Corp">
+        </div>
+        <div class="form-row">
+          <label for="prof_title">Job Title</label>
+          <input type="text" id="prof_title" placeholder="Software Engineer">
+        </div>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="prof_school">University / School</label>
+            <input type="text" id="prof_school" placeholder="State University">
+          </div>
+          <div class="form-row">
+            <label for="prof_degree">Degree</label>
+            <input type="text" id="prof_degree" placeholder="B.S. Computer Science">
+          </div>
+        </div>
+
+        <div class="section-header">Custom / Additional Details</div>
+        <div class="form-row">
+          <label for="prof_custom_salary">Desired Salary</label>
+          <input type="text" id="prof_custom_salary" placeholder="$120,000">
+        </div>
+
+        <div style="margin-top: 14px;">
+          <button type="button" id="btn-save-profile" class="btn-maroon">
+            💾 Save Profile & Continue
+          </button>
+        </div>
+      </form>
     </div>
-    <div class="stat-row">
-      <span>Unmatched Fields:</span>
-      <span class="badge badge-unmatched" id="stat-unmatched">0</span>
+
+    <!-- SCREEN 4: FILL TAB -->
+    <div id="screen-fill" class="screen">
+      <div class="status-card">
+        <div class="stat-row">
+          <span>Detected Fields on Page</span>
+          <strong id="stat-total" style="color: var(--text-dark); font-size: 13px;">0</strong>
+        </div>
+        <div class="stat-row">
+          <span>Matched & Ready to Fill</span>
+          <span class="badge badge-matched" id="stat-matched">0</span>
+        </div>
+        <div class="stat-row">
+          <span>Ambiguous (Review Needed)</span>
+          <span class="badge badge-ambiguous" id="stat-ambiguous">0</span>
+        </div>
+        <div class="stat-row">
+          <span>Unmatched Fields</span>
+          <span class="badge badge-unmatched" id="stat-unmatched">0</span>
+        </div>
+        <div class="stat-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-warm);">
+          <span style="font-weight: 700; color: var(--primary-maroon);">Fields Need Attention</span>
+          <span class="badge badge-attention" id="stat-attention">0</span>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <button id="btn-autofill" class="btn-maroon">⚡ Fill This Page</button>
+        <button id="btn-scan" class="btn-secondary">🔍 Scan Form Fields</button>
+        <button id="btn-clear" class="btn-secondary" style="color: #b91c1c;">✕ Clear Highlights</button>
+      </div>
     </div>
-    <div class="stat-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #334155;">
-      <span>Need Attention:</span>
-      <span class="badge badge-attention" id="stat-attention">0</span>
+
+    <!-- SCREEN 5: SETTINGS -->
+    <div id="screen-settings" class="screen">
+      <div class="section-header">Extension Settings</div>
+      <div class="status-card" style="font-size: 12px; line-height: 1.5;">
+        <div style="margin-bottom: 8px;"><strong>FillX Core Engine:</strong> v1.0.0</div>
+        <div style="margin-bottom: 8px;"><strong>Autofill Status:</strong> Active & Ready</div>
+        <div style="margin-bottom: 8px;"><strong>Framework Support:</strong> React 15-19, Vue 2-3, Native DOM</div>
+        <div><strong>Storage Mode:</strong> chrome.storage.local (Secure Encrypted)</div>
+      </div>
+      <button id="btn-reset-all" class="btn-secondary" style="color: #b91c1c; border-color: #fecaca;">
+        🗑️ Reset All Stored Extension Data
+      </button>
     </div>
+
   </div>
 
-  <div class="btn-group">
-    <button id="btn-autofill" class="btn-primary">⚡ Fill This Page</button>
-    <button id="btn-scan" class="btn-secondary">🔍 Scan Form Fields</button>
-    <button id="btn-clear" class="btn-danger">✕ Clear Highlights</button>
+  <!-- Bottom Navigation Tabs -->
+  <div class="bottom-nav">
+    <button class="nav-item active" data-target="screen-upload">
+      <span class="nav-icon">📤</span>
+      <span>Upload</span>
+    </button>
+    <button class="nav-item" data-target="screen-profile">
+      <span class="nav-icon">👤</span>
+      <span>Profile</span>
+    </button>
+    <button class="nav-item" data-target="screen-fill">
+      <span class="nav-icon">⚡</span>
+      <span>Fill Form</span>
+    </button>
+    <button class="nav-item" data-target="screen-settings">
+      <span class="nav-icon">⚙️</span>
+      <span>Settings</span>
+    </button>
   </div>
 
-  <div class="footer">Ready for Member 2/3/4 Integration</div>
+  <!-- Toast Alert -->
+  <div id="toast" class="toast">Profile Saved ✓</div>
 
   <script src="popup.js"></script>
 </body>
