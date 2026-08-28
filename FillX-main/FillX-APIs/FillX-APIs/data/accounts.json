@@ -1,0 +1,32 @@
+{
+  "user_a@enterprise.com": {
+    "user": {
+      "id": "usr_1787856116442_jlq6ic",
+      "email": "user_a@enterprise.com",
+      "name": "Alice Archer",
+      "createdAt": "2026-08-27T18:41:56.442Z"
+    },
+    "passwordHash": "cGFzc3dvcmQxMjM=",
+    "updatedAt": "2026-08-27T18:41:56.951Z"
+  },
+  "user_b@startup.io": {
+    "user": {
+      "id": "usr_1787856116977_26v5u4",
+      "email": "user_b@startup.io",
+      "name": "Bob Builder",
+      "createdAt": "2026-08-27T18:41:56.977Z"
+    },
+    "passwordHash": "c2VjdXJlUGFzczQ1Ng==",
+    "updatedAt": "2026-08-27T18:41:57.060Z"
+  },
+  "md123@gmail.com": {
+    "user": {
+      "id": "usr_1787857686318_m8jhb2",
+      "email": "md123@gmail.com",
+      "name": "md",
+      "createdAt": "2026-08-27T19:08:06.318Z"
+    },
+    "passwordHash": "db7cdda766b66506b2676e74a9a471d524d32d9ef39fa0416afa39b5793ff275",
+    "updatedAt": "2026-08-27T19:08:06.347Z"
+  }
+}

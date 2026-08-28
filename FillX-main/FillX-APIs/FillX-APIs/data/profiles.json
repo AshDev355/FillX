@@ -1,0 +1,195 @@
+{
+  "user_a@enterprise.com": {
+    "meta": {
+      "lastUpdated": "2026-08-27T18:57:54.766Z",
+      "sourceFileName": null,
+      "onboardingCompleted": false,
+      "version": 1
+    },
+    "personal": {
+      "firstName": "Alice",
+      "lastName": "Archer",
+      "email": "user_a@enterprise.com",
+      "phone": "111-222-3333"
+    },
+    "address": {
+      "city": "New York",
+      "state": "NY"
+    },
+    "education": [],
+    "experience": [],
+    "skills": [],
+    "languages": [],
+    "links": {
+      "linkedin": "",
+      "github": "",
+      "portfolio": ""
+    },
+    "custom": {},
+    "customFields": {}
+  },
+  "user_b@startup.io": {
+    "meta": {
+      "lastUpdated": "2026-08-27T18:57:54.785Z",
+      "sourceFileName": null,
+      "onboardingCompleted": false,
+      "version": 1
+    },
+    "personal": {
+      "firstName": "Bob",
+      "lastName": "Builder",
+      "email": "user_b@startup.io",
+      "phone": "444-555-6666"
+    },
+    "address": {
+      "city": "Austin",
+      "state": "TX"
+    },
+    "education": [],
+    "experience": [],
+    "skills": [],
+    "languages": [],
+    "links": {
+      "linkedin": "",
+      "github": "",
+      "portfolio": ""
+    },
+    "custom": {},
+    "customFields": {}
+  },
+  "amnaimran494@gmail.com": {
+    "meta": {
+      "lastUpdated": "2026-08-27T19:06:03.180Z",
+      "sourceFileName": "Amna-Imran-Resume.pdf",
+      "onboardingCompleted": false,
+      "version": 1
+    },
+    "personal": {
+      "firstName": "AMNA",
+      "lastName": "Imran",
+      "fullName": "Amna Imran",
+      "email": "amnaimran494@gmail.com",
+      "phone": "03330495370",
+      "dateOfBirth": "2007-06-03",
+      "nationality": ""
+    },
+    "address": {
+      "street": "236 paf colony",
+      "city": "Lahore",
+      "state": "Punjab",
+      "zip": "65535",
+      "country": "Pakistan"
+    },
+    "education": [
+      {
+        "degree": "MA",
+        "endYear": "",
+        "field": "Computer Science",
+        "gpa": "",
+        "institution": "University"
+      },
+      {
+        "degree": "MA",
+        "endYear": "",
+        "field": "Computer Science",
+        "gpa": "",
+        "institution": "University"
+      }
+    ],
+    "experience": [],
+    "skills": [
+      "React"
+    ],
+    "languages": [
+      "English"
+    ],
+    "links": {
+      "linkedin": "",
+      "github": "",
+      "portfolio": ""
+    },
+    "custom": {
+      "cash_on_delivery": "Cash on Delivery",
+      "city": "Lahore",
+      "country": "Pakistan",
+      "date_of_birth": "2007-06-03",
+      "describe_your_favorite_hobby": "Throughout my career as a Intern at Netsole, I have developed deep expertise in painting , crochete, sketching, horse riding. When addressing \"Describe Your Favorite Hobby\", I leverage these core competencies to deliver consistent, high-impact results. I look forward to applying my problem-solving skills and technical background to contribute effectively to your team.",
+      "education_level": "Undergraduate",
+      "employment_type": "Internship",
+      "favorite_book_genre": "Reality",
+      "favorite_movie_genre": "Tekken",
+      "favorite_music_genre": "sad",
+      "favorite_sport": "Basketball",
+      "full_name": "Amna Imran",
+      "portfolio_url": "https://amnaimran-portfolio.vercel.app/",
+      "postal_code": "54800",
+      "street_address": "236 paf colony",
+      "years_of_experience": "0"
+    },
+    "customFields": {
+      "cash_on_delivery": "Cash on Delivery",
+      "city": "Lahore",
+      "country": "Pakistan",
+      "date_of_birth": "2007-06-03",
+      "describe_your_favorite_hobby": "Throughout my career as a Intern at Netsole, I have developed deep expertise in painting , crochete, sketching, horse riding. When addressing \"Describe Your Favorite Hobby\", I leverage these core competencies to deliver consistent, high-impact results. I look forward to applying my problem-solving skills and technical background to contribute effectively to your team.",
+      "education_level": "Undergraduate",
+      "employment_type": "Internship",
+      "favorite_book_genre": "Reality",
+      "favorite_movie_genre": "Tekken",
+      "favorite_music_genre": "sad",
+      "favorite_sport": "Basketball",
+      "full_name": "Amna Imran",
+      "portfolio_url": "https://amnaimran-portfolio.vercel.app/",
+      "postal_code": "54800",
+      "street_address": "236 paf colony",
+      "years_of_experience": "0"
+    }
+  },
+  "md123@gmail.com": {
+    "meta": {
+      "lastUpdated": "2026-08-27T19:09:06.837Z",
+      "sourceFileName": "onboarding_setup",
+      "onboardingCompleted": true,
+      "version": 1
+    },
+    "personal": {
+      "firstName": "md",
+      "lastName": "ABID",
+      "fullName": "md ABID",
+      "email": "md123@gmail.com",
+      "phone": "34567890",
+      "dateOfBirth": "",
+      "nationality": ""
+    },
+    "address": {
+      "street": "Mughalpura",
+      "city": "Lahore",
+      "state": "Punjab",
+      "zip": "54800",
+      "country": "Pakistan"
+    },
+    "education": [
+      {
+        "degree": "",
+        "endYear": "",
+        "institution": ""
+      }
+    ],
+    "experience": [
+      {
+        "company": "",
+        "title": "",
+        "years": ""
+      }
+    ],
+    "skills": [],
+    "languages": [],
+    "links": {
+      "linkedin": "",
+      "github": "",
+      "portfolio": ""
+    },
+    "custom": {},
+    "customFields": {}
+  }
+}
