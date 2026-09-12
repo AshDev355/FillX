@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { buildExtractionPrompt } from "@/lib/prompts";
+import { buildExtractionPrompt, buildExtractionInstructionsForPdf } from "@/lib/prompts";
 
 export async function POST(request) {
   try {
@@ -11,11 +11,14 @@ export async function POST(request) {
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
-    const { documentText } = body;
+    const { documentText, pdfBase64, mimeType } = body;
 
-    if (!documentText || typeof documentText !== "string" || documentText.trim() === "") {
+    const hasText = typeof documentText === "string" && documentText.trim() !== "";
+    const hasPdf = typeof pdfBase64 === "string" && pdfBase64.trim() !== "";
+
+    if (!hasText && !hasPdf) {
       return NextResponse.json(
-        { error: "Missing or empty 'documentText' in request body." },
+        { error: "Request must include either 'documentText' or 'pdfBase64'." },
         { status: 400 }
       );
     }
@@ -29,11 +32,28 @@ export async function POST(request) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const modelName = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+    const modelName = process.env.GEMINI_MODEL || "gemini-3.6-flash";
     const model = genAI.getGenerativeModel({ model: modelName });
 
-    const prompt = buildExtractionPrompt(documentText);
-    const result = await model.generateContent(prompt);
+    // Build the request content: either a PDF file part (best quality — Gemini
+    // reads the PDF natively) or plain extracted text, matching whichever the
+    // client sent.
+    let result;
+    if (hasPdf) {
+      result = await model.generateContent([
+        {
+          inlineData: {
+            mimeType: mimeType || "application/pdf",
+            data: pdfBase64,
+          },
+        },
+        { text: buildExtractionInstructionsForPdf() },
+      ]);
+    } else {
+      const prompt = buildExtractionPrompt(documentText);
+      result = await model.generateContent(prompt);
+    }
+
     const responseText = result.response.text();
 
     let profileData;

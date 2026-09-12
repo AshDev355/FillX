@@ -43,7 +43,7 @@ export async function POST(request) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const modelName = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+    const modelName = process.env.GEMINI_MODEL || "gemini-3.6-flash";
     const model = genAI.getGenerativeModel({ model: modelName });
 
     const prompt = buildGenerationPrompt(question, keywords, profile);
