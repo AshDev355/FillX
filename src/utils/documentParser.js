@@ -294,7 +294,10 @@ export function localRuleBasedExtractor(text) {
       : `https://${githubMatch[0]}`;
   }
 
-  const portfolioMatch = text.match(
+  const labeledPortfolioMatch = text.match(
+    /(?:portfolio|personal website|website)\s*:\s*((?:https?:\/\/)?(?:www\.)?[a-zA-Z0-9_-]+\.(?:dev|io|me|com|org|net|app)(?:\/[^\s]*)?)/i
+  );
+  const portfolioMatch = labeledPortfolioMatch || text.match(
     /(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9_\-]+\.(?:dev|io|me|com|org|net|app))(?:\/[^\s]*)?/i
   );
   if (
@@ -302,9 +305,10 @@ export function localRuleBasedExtractor(text) {
     !portfolioMatch[0].includes('linkedin') &&
     !portfolioMatch[0].includes('github')
   ) {
-    profile.links.portfolio = portfolioMatch[0].startsWith('http')
-      ? portfolioMatch[0]
-      : `https://${portfolioMatch[0]}`;
+    const portfolioUrl = labeledPortfolioMatch ? portfolioMatch[1] : portfolioMatch[0];
+    profile.links.portfolio = portfolioUrl.startsWith('http')
+      ? portfolioUrl
+      : `https://${portfolioUrl}`;
   }
 
   // ─── 7. Street Address ──────────────────────────────────────────────────────
@@ -412,8 +416,11 @@ export function localRuleBasedExtractor(text) {
 
   // ─── 14. Education ────────────────────────────────────────────────────────────
   const educationEntries = [];
+  const institutionByYear = text.match(
+    /\b([A-Z]{2,}(?:\s+[A-Z][A-Za-z.&-]*){1,4})\s*,\s*(?:19\d\d|20\d\d)\b/
+  );
   const degreeRegex =
-    /(bachelor(?:'s)?|master(?:'s)?|b\.?s\.?|m\.?s\.?|b\.?a\.?|m\.?a\.?|b\.?tech|m\.?tech|ph\.?d\.?|associate(?:'s)?|diploma)(?:\s+(?:of|in)\s+([a-zA-Z\s&]+))?/gi;
+    /(bachelor(?:'s)?|master(?:'s)?|b\.?s\.?|m\.?s\.?|b\.?a\.?|m\.?a\.?|b\.?tech|m\.?tech|ph\.?d\.?|associate(?:'s)?|diploma)(?:\s+(?:of|in)\s+([a-zA-Z &]+))?/gi;
   let degreeMatch;
 
   while ((degreeMatch = degreeRegex.exec(text)) !== null) {
@@ -425,13 +432,31 @@ export function localRuleBasedExtractor(text) {
     const instMatch = ctx.match(
       /([A-Z][a-zA-Z\s&.\-]+(?:University|College|Institute|School|Academy|Polytechnic))/i
     );
-    const yearMatch = ctx.match(/\b(19\d\d|20\d\d)\b/);
+    const yearCandidates = text
+      .slice(degreeMatch.index, degreeMatch.index + 240)
+      .match(/\b(19\d\d|20\d\d)\b/g) || [];
+    const yearMatch = yearCandidates.length > 0 ? [null, yearCandidates.at(-1)] : null;
+    const institutionWithYearMatch = ctx.match(
+      /(?:^|\n)\s*([A-Z][A-Za-z.&-]*(?:\s+[A-Z][A-Za-z.&-]*){1,4})\s*,?\s*(?:19\d\d|20\d\d)\b/m
+    );
+    const followingInstitutionMatch = text
+      .slice(degreeMatch.index, degreeMatch.index + 240)
+      .match(/\n\s*([A-Z][A-Za-z.&-]*(?:\s+[A-Z][A-Za-z.&-]*){1,4})\s*,?\s*(?:19\d\d|20\d\d)\b/);
+    const institutionYear = (institutionByYear || followingInstitutionMatch)?.[0]?.match(/\b(19\d\d|20\d\d)\b/);
     const gpaMatch = ctx.match(/\bGPA:?\s*([0-4]\.\d{1,2}|[0-9]{1,2}(?:\.[0-9])?\/[0-9]{1,2})\b/i);
     educationEntries.push({
-      institution: instMatch ? instMatch[1].trim() : 'University',
+      institution: institutionByYear
+        ? institutionByYear[1].trim()
+        : followingInstitutionMatch
+        ? followingInstitutionMatch[1].trim()
+        : institutionWithYearMatch
+        ? institutionWithYearMatch[1].trim()
+        : instMatch
+        ? instMatch[1].trim()
+        : 'University',
       degree: degree.toUpperCase(),
       field: field || 'Computer Science',
-      endYear: yearMatch ? yearMatch[1] : '',
+      endYear: institutionYear ? institutionYear[1] : yearMatch ? yearMatch[1] : '',
       gpa: gpaMatch ? gpaMatch[1] : '',
     });
     if (educationEntries.length >= 2) break;
@@ -455,15 +480,19 @@ export function localRuleBasedExtractor(text) {
 
   // ─── 15. Work Experience ──────────────────────────────────────────────────────
   const experienceEntries = [];
+  const experienceHeading = text.search(/\b(?:work\s+)?experience\b/i);
+  const experienceText = experienceHeading >= 0 ? text.slice(experienceHeading) : text;
   const titleRegex =
-    /\b(Software Engineer|Frontend Developer|Full Stack Developer|Backend Developer|Web Developer|Product Manager|Data Scientist|Data Analyst|DevOps Engineer|Mobile Developer|QA Engineer|UI\/UX Designer|Consultant|Intern|Specialist|Team Lead|Architect|Designer|Manager|Director|Analyst|Developer)\b/gi;
+    /\b((?:Lead|Senior|Junior|Principal|Chief|Associate)\s+)?(Software Engineer|Frontend Developer|Full Stack Developer|Backend Developer|Web Developer|Product Manager|Data Scientist|Data Analyst|DevOps Engineer|Mobile Developer|QA Engineer|UI\/UX Designer|Consultant|Intern|Specialist|Team Lead|Architect|Designer|Manager|Director|Analyst|Developer)\b/gi;
   let titleMatch;
 
-  while ((titleMatch = titleRegex.exec(text)) !== null) {
-    const title = titleMatch[1];
+  while ((titleMatch = titleRegex.exec(experienceText)) !== null) {
+    const precedingTitleText = experienceText.slice(Math.max(0, titleMatch.index - 20), titleMatch.index);
+    const titleModifier = precedingTitleText.match(/(?:^|\s)(Lead|Senior|Junior|Principal|Chief|Associate)\s*$/i);
+    const title = `${titleMatch[1] || (titleModifier ? `${titleModifier[1]} ` : '')}${titleMatch[2]}`.trim();
     const winStart = Math.max(0, titleMatch.index - 80);
-    const winEnd = Math.min(text.length, titleMatch.index + 150);
-    const ctx = text.slice(winStart, winEnd);
+    const winEnd = Math.min(experienceText.length, titleMatch.index + 150);
+    const ctx = experienceText.slice(winStart, winEnd);
     const companyMatch = ctx.match(
       /(?:at|@|for|,)\s+([A-Z][a-zA-Z0-9\s&.\-]+(?:Inc|LLC|Corp|Technologies|Solutions|Labs|Company|Group)?)/i
     );

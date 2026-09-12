@@ -23,8 +23,9 @@ import {
   clearAllHighlights,
 } from './highlighter.js';
 import { fieldState } from './fieldState.js';
-import { attachSavePromptsToUnmatched } from './savePromptBridge.js';
+import { attachSavePromptsToUnmatched, attachAutoSaveToMatched } from './savePromptBridge.js';
 import { MATCH_STATUS } from '../shared/messageTypes.js';
+import { isValidValueForField } from '../shared/fieldValueValidator.js';
 
 /**
  * Executes autofill on the webpage based on the provided matching results.
@@ -63,6 +64,35 @@ export function executeAutofill(matchingResults, options = {}) {
     }
 
     processedFields.push({ fieldId, element, status, value });
+
+    const fieldDescriptor = {
+      type: (element.getAttribute('type') || element.tagName || 'text').toLowerCase(),
+      label: element.getAttribute('aria-label') || '',
+      name: element.getAttribute('name') || '',
+      id: element.id || '',
+      placeholder: element.getAttribute('placeholder') || '',
+      autocomplete: element.getAttribute('autocomplete') || '',
+    };
+    const valueIsSafe = isValidValueForField(fieldDescriptor, value);
+
+    console.debug('FillX match trace', {
+      fieldId,
+      label: fieldDescriptor.label,
+      name: fieldDescriptor.name,
+      id: fieldDescriptor.id,
+      type: fieldDescriptor.type,
+      profileKey: match.profileKey || null,
+      confidence: match.confidence ?? 0,
+      status,
+      valueIsSafe,
+    });
+
+    if ((status === MATCH_STATUS.MATCHED || status === MATCH_STATUS.AMBIGUOUS) && !valueIsSafe) {
+      fieldState.updateFieldStatus(fieldId, MATCH_STATUS.NO_MATCH);
+      processedFields[processedFields.length - 1].status = MATCH_STATUS.NO_MATCH;
+      highlightUnmatched(element, { label: '✕ Unmatched' });
+      continue;
+    }
 
     switch (status) {
       case MATCH_STATUS.MATCHED: {
@@ -112,9 +142,14 @@ export function executeAutofill(matchingResults, options = {}) {
     }
   }
 
-  // Attach save prompt listeners to unmatched fields
+  // Attach save prompt listeners to unmatched (and ambiguous) fields
   const unmatchedForPrompt = fieldState.getUnmatchedFieldsForPrompt();
   attachSavePromptsToUnmatched(unmatchedForPrompt);
+
+  // Attach auto-save listeners to already-matched fields so corrections
+  // the user makes to autofilled values are persisted back to the profile.
+  const matchedForAutoSave = fieldState.getMatchedFieldsForAutoSave();
+  attachAutoSaveToMatched(matchedForAutoSave);
 
   const stats = fieldState.getStats();
 

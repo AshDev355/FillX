@@ -168,7 +168,22 @@ export async function getProfile(specificUserEmail = null) {
     : [STORAGE_KEYS.PROFILE, STORAGE_KEYS.USER_PROFILE];
 
   const result = await storageGet(queryKeys);
-  const p = (userKey ? result[userKey] : null) || result[STORAGE_KEYS.PROFILE] || result[STORAGE_KEYS.USER_PROFILE];
+  let p = (userKey ? result[userKey] : null) || result[STORAGE_KEYS.PROFILE] || result[STORAGE_KEYS.USER_PROFILE];
+
+  if (!p && userEmail && typeof fetch === 'function') {
+    try {
+      const response = await fetch(`http://localhost:3000/api/profile?email=${encodeURIComponent(userEmail)}`);
+      const remote = response.ok ? await response.json() : null;
+      if (remote?.profile) {
+        p = remote.profile;
+        await storageSet({
+          [STORAGE_KEYS.PROFILE]: p,
+          [STORAGE_KEYS.USER_PROFILE]: p,
+          [getUserProfileKey(userEmail)]: p,
+        });
+      }
+    } catch {}
+  }
 
   if (!p) {
     const blank = JSON.parse(JSON.stringify(DEFAULT_PROFILE));
@@ -237,6 +252,16 @@ export async function setProfile(profileData, sourceFileName = null, specificUse
   }
 
   await storageSet(toSave);
+
+  // Keep the backend as the durable account store; local Chrome storage remains
+  // available when the API is offline.
+  if (userEmail && typeof fetch === 'function') {
+    fetch('http://localhost:3000/api/profile', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'x-fillx-account': userEmail },
+      body: JSON.stringify({ email: userEmail, profile: updated }),
+    }).catch(() => {});
+  }
 }
 
 /**
@@ -583,4 +608,35 @@ export async function addHistoryItem(item) {
   const updated = [newItem, ...history].slice(0, 50);
   await storageSet({ [STORAGE_KEYS.HISTORY]: updated });
   return updated;
+}
+
+// ─── Extended History Helpers ─────────────────────────────────────────────────
+
+/** Clear all history */
+export async function clearHistory() {
+  await storageSet({ [STORAGE_KEYS.HISTORY]: [] });
+}
+
+/**
+ * Add a detailed fill history entry.
+ * @param {object} opts
+ * @param {string} opts.url - Page URL
+ * @param {string} opts.title - Page title
+ * @param {object} opts.stats - { totalFields, matchedCount, ambiguousCount, unmatchedCount }
+ * @param {Array}  opts.fields - Array of { label, name, id, status, value }
+ * @param {string} opts.profileName - Active profile name
+ */
+export async function addFillHistoryEntry({ url, title, stats, fields, profileName }) {
+  return addHistoryItem({
+    type: 'FORM_FILL',
+    url: url || '',
+    title: title || getDomainFromUrl(url),
+    stats: stats || {},
+    fields: Array.isArray(fields) ? fields.slice(0, 60) : [], // cap at 60 fields
+    profileName: profileName || '',
+  });
+}
+
+function getDomainFromUrl(url) {
+  try { return new URL(url).hostname.replace('www.', ''); } catch { return url || 'Unknown'; }
 }

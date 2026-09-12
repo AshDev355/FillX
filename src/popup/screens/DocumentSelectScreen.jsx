@@ -31,7 +31,9 @@ export default function DocumentSelectScreen({ onProcess, onBack }) {
 
       if (mode === 'file') {
         if (!selectedFile) throw new Error('Please select a file to upload.');
-        documentText = await parseUploadedFile(selectedFile);
+        const parsed = await parseUploadedFile(selectedFile);
+        documentText = parsed.text;
+        const isPdfProfile = parsed.isPdfProfile;
         fileName = selectedFile.name;
         fileSize = `${(selectedFile.size / (1024 * 1024)).toFixed(1)} MB · ${selectedFile.name.split('.').pop()?.toUpperCase()} Document`;
       } else {
@@ -45,7 +47,7 @@ export default function DocumentSelectScreen({ onProcess, onBack }) {
         throw new Error('Could not extract readable text from this document.');
       }
 
-      onProcess({
+      onProcess({ isPdfProfile: typeof isPdfProfile !== 'undefined' && isPdfProfile,
         documentText,
         fileName,
         fileSize,

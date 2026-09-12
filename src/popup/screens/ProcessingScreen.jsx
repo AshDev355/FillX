@@ -27,6 +27,20 @@ export default function ProcessingScreen({ documentPayload, onComplete, onError 
     async function processDocument() {
       const documentText = documentPayload?.documentText || '';
       const fileName = documentPayload?.fileName || 'resume_2026.pdf';
+      const isPdfProfile = documentPayload?.isPdfProfile || false;
+
+      // If PDF was already extracted by Gemini via backend (isPdfProfile=true),
+      // documentText is already a JSON profile string — skip re-extraction
+      if (isPdfProfile && documentText.startsWith('{')) {
+        try {
+          const preExtracted = JSON.parse(documentText);
+          clearInterval(timer);
+          setPercentage(100);
+          await mergeProfile(preExtracted, fileName);
+          setTimeout(() => { if (!isCancelled && onComplete) onComplete(preExtracted, fileName); }, 350);
+          return;
+        } catch {}
+      }
 
       try {
         let extracted = null;

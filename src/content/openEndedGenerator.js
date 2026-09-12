@@ -11,6 +11,7 @@ import { fieldIdentifier } from './fieldIdentifier.js';
 import { setFieldValue } from './valueSetter.js';
 import { highlightMatched } from './highlighter.js';
 import { MESSAGE_TYPES } from '../shared/messageTypes.js';
+import { generateLocalAnswer } from '../shared/answerGenerator.js';
 
 const TRIGGER_CLASS = 'fillx-generate-trigger';
 const MODAL_ID = 'fillx-generate-modal';
@@ -239,7 +240,7 @@ function showKeywordModal(element, question, fieldId) {
     }
 
     function applyFallback() {
-      const fallbackAnswer = `Based on my background in software development and key focus on ${keywords}, I bring strong execution and problem-solving skills to ${question}. I have consistently delivered high-impact results in similar projects.`;
+      const fallbackAnswer = generateLocalAnswer(question, keywords);
       setFieldValue(element, fallbackAnswer);
       highlightMatched(element, { label: '✓ Generated' });
       removeModal();

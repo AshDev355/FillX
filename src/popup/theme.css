@@ -40,25 +40,68 @@
   --color-danger-bg: rgba(239, 68, 68, 0.12);
 
   /* Fonts */
-  --font-display: 'Fraunces', 'Playfair Display', Georgia, serif;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Georgia', 'Times New Roman', serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 
-  /* Elevation */
+  /* Elevation / Shadows */
   --shadow-sm: 0 2px 8px rgba(74, 14, 14, 0.03);
   --shadow-md: 0 6px 20px rgba(74, 14, 14, 0.05), 0 2px 6px rgba(0, 0, 0, 0.02);
   --shadow-lg: 0 12px 28px rgba(74, 14, 14, 0.08);
 
-  /* Border Radii */
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 18px;
-  --radius-full: 9999px;
+  /* ─────────────────────────────────────────────────────────────────
+     SPACING SCALE — Consistent throughout all pages/screens
+     ────────────────────────────────────────────────────────────────── */
+  --spacing-2: 2px;
+  --spacing-4: 4px;
+  --spacing-6: 6px;
+  --spacing-8: 8px;
+  --spacing-10: 10px;
+  --spacing-12: 12px;
+  --spacing-14: 14px;
+  --spacing-16: 16px;
+  --spacing-20: 20px;
+  --spacing-24: 24px;
+  --spacing-28: 28px;
+  --spacing-32: 32px;
 
-  /* Shared action controls */
-  --button-height: 44px;
+  /* Container padding (left/right) */
+  --container-px: var(--spacing-20);
+  /* Container padding (top/bottom) */
+  --container-py: var(--spacing-24);
+  
+  /* Card/Surface padding */
+  --card-padding: var(--spacing-16);
+  
+  /* Form/Input spacing */
+  --form-gap: var(--spacing-8);
+  
+  /* Field vertical margin */
+  --field-mb: var(--spacing-10);
+
+  /* ─────────────────────────────────────────────────────────────────
+     BORDER RADII SCALE — Consistent throughout
+     ────────────────────────────────────────────────────────────────── */
+  --radius-sm: 8px;     /* Inputs, small elements, menu items */
+  --radius-md: 14px;    /* Cards, surfaces */
+  --radius-lg: 18px;    /* Buttons, prominent elements */
+  --radius-full: 9999px; /* Circular badges, pills */
+
+  /* Button-specific radius (use radius-lg) */
   --button-radius: var(--radius-lg);
+  
+  /* ─────────────────────────────────────────────────────────────────
+     BUTTON SYSTEM — Consistent heights and spacing
+     ────────────────────────────────────────────────────────────────── */
+  --button-height: 44px;
   --button-gap: 10px;
   --button-font-size: 11px;
+  --button-font-weight: 700;
+  --button-letter-spacing: 0.8px;
+  
+  /* Button shadows — consistent across all states */
+  --button-shadow-primary: 0 4px 12px rgba(74, 14, 14, 0.15);
+  --button-shadow-outline: var(--shadow-sm);
+  --button-transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
 }
 
 * {
@@ -136,68 +179,106 @@ button {
   font: inherit;
 }
 
-.primary-button, .outline-button {
+.primary-button, .outline-button, .btn-primary, .btn-outline {
   width: 100%;
   min-width: 0;
-  height: var(--button-height);
+  height: auto;
   min-height: var(--button-height);
-  max-height: var(--button-height);
-  flex: 0 0 var(--button-height);
-  padding: 0 16px;
+  max-height: none;
+  flex: 0 1 auto;
+  padding: 10px 16px;
   border-radius: var(--button-radius);
   gap: var(--button-gap);
   font-size: var(--button-font-size);
-  font-weight: 700;
-  letter-spacing: 0.8px;
+  font-weight: var(--button-font-weight);
+  letter-spacing: var(--button-letter-spacing);
   text-transform: uppercase;
-  line-height: 1;
+  line-height: 1.2;
+  white-space: normal;
+  overflow-wrap: anywhere;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
-}
-
-.primary-button {
+  height: auto;
+  min-height: var(--button-height);
+  max-height: none;
+  flex: 0 1 auto;
+  padding: 10px 16px;
   background: var(--color-primary);
   color: #FFFFFF;
   border: none;
-  box-shadow: 0 4px 12px rgba(74, 14, 14, 0.15);
+  box-shadow: var(--button-shadow-primary);
 }
 
-.primary-button:hover:not(:disabled) {
-  background: var(--color-primary-hover);
-}
-
-.primary-button:active:not(:disabled) {
+.primary-button:active:not(:disabled), .btn-primary:active:not(:disabled) {
   background: var(--color-primary-dark);
   transform: scale(0.98);
 }
 
-.primary-button:disabled {
+.primary-button:disabled, .btn-primary:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
 
-.outline-button {
+.primary-button > span, .outline-button > span, .btn-primary > span, .btn-outline > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+.outline-button, .btn-outline {
   background: var(--color-surface-card);
   color: var(--color-primary);
   border: 1px solid var(--color-border);
+  box-shadow: var(--button-shadow-outline);
+}
+
+.outline-button:hover:not(:disabled), .btn-outline:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background: #FFF8F5;
   box-shadow: var(--shadow-sm);
 }
 
-.outline-button:hover:not(:disabled) {
-  border-color: var(--color-primary);
-  background: #FFF8F5;
-}
-
-.outline-button:active:not(:disabled) {
+.outline-button:active:not(:disabled), .btn-outline:active:not(:disabled) {
   transform: scale(0.98);
 }
 
+.outline-button:disabled, .btn-outline:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 /* Screen Layouts */
-.upload-screen, .processing-screen, .preview-screen {
-  padding: 24px 20px;
+.upload-screen, .processing-screen {
+  padding: var(--container-py) var(--container-px);
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.preview-screen {
+  padding-bottom: var(--spacing-16);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.preview-scroll {
+  overflow-y: auto;
+  padding: 0 var(--container-px) 0 var(--container-px);
+  margin-top: var(--container-py);
+}
+
+.select-screen, .manual-screen, .history-screen, .settings-screen {
+  padding: var(--container-py) var(--container-px);
+  overflow-y: auto;
+}
+
+.onboarding-container {
+  padding: var(--container-py) var(--container-px);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
 }
 
 .upload-screen {
@@ -209,7 +290,7 @@ button {
 
 .upload-hero {
   text-align: center;
-  margin: 16px 12px 24px;
+  margin: var(--spacing-16) var(--spacing-12) var(--spacing-24);
 }
 
 .scan-badge, .processing-icon, .success-icon, .option-icon, .file-icon {
@@ -221,14 +302,14 @@ button {
 .scan-badge {
   width: 88px;
   height: 88px;
-  margin: 0 auto 20px;
-  border-radius: 50%;
+  margin: 0 auto var(--spacing-20);
+  border-radius: var(--radius-full);
   background: var(--color-secondary-pale);
   color: var(--color-primary);
 }
 
 .upload-hero p, .processing-copy p {
-  margin-top: 12px;
+  margin-top: var(--spacing-12);
   color: var(--color-text-muted);
   font-size: 13px;
   line-height: 1.55;
@@ -237,8 +318,8 @@ button {
 .or-divider {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin: 22px 0 16px;
+  gap: var(--spacing-12);
+  margin: var(--spacing-20) 0 var(--spacing-16);
   color: var(--color-text-muted);
   font-size: 10px;
   font-weight: 700;
@@ -255,12 +336,12 @@ button {
 .upload-option-card {
   width: 100%;
   border: 0;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   background: var(--color-surface-inset);
-  padding: 16px;
+  padding: var(--card-padding);
   display: flex;
   align-items: center;
-  gap: 13px;
+  gap: var(--spacing-12);
   text-align: left;
   cursor: pointer;
   color: var(--color-primary);
@@ -276,14 +357,14 @@ button {
 .option-icon {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: var(--color-secondary-pale);
   flex-shrink: 0;
 }
 
 .option-copy {
   display: grid;
-  gap: 4px;
+  gap: var(--spacing-4);
 }
 
 .option-copy strong, .file-copy strong, .success-banner strong {
@@ -301,11 +382,11 @@ button {
 
 .secure-note {
   margin-top: auto;
-  padding-top: 24px;
+  padding-top: var(--container-py);
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 6px;
+  gap: var(--spacing-6);
   color: var(--color-text-muted);
   font-size: 11px;
 }
@@ -320,10 +401,10 @@ button {
 .file-info-card {
   display: flex;
   align-items: center;
-  gap: 13px;
-  padding: 16px;
+  gap: var(--spacing-12);
+  padding: var(--card-padding);
   background: var(--color-surface-card);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
   border: 1px solid var(--color-border);
 }
@@ -331,7 +412,7 @@ button {
 .file-icon {
   width: 42px;
   height: 42px;
-  border-radius: 13px;
+  border-radius: var(--radius-md);
   background: var(--color-secondary-pale);
   color: var(--color-primary);
   flex-shrink: 0;
@@ -339,36 +420,36 @@ button {
 
 .file-copy {
   display: grid;
-  gap: 4px;
+  gap: var(--spacing-4);
 }
 
 .file-copy b {
   font-weight: 400;
-  margin: 0 3px;
+  margin: 0 var(--spacing-2);
 }
 
 .processing-copy {
   text-align: center;
-  margin: auto 10px 32px;
+  margin: auto var(--container-px) var(--spacing-32);
 }
 
 .processing-icon {
   width: 44px;
   height: 44px;
-  border-radius: 50%;
-  margin: 0 auto 18px;
+  border-radius: var(--radius-full);
+  margin: 0 auto var(--spacing-16);
   color: var(--color-primary);
   background: var(--color-secondary-pale);
 }
 
 .progress-area {
-  margin-bottom: 24px;
+  margin-bottom: var(--spacing-24);
 }
 
 .progress-track {
   height: 8px;
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--color-border);
 }
 
@@ -381,7 +462,7 @@ button {
 
 .progress-label {
   display: block;
-  margin-top: 11px;
+  margin-top: var(--spacing-12);
   text-align: center;
   color: var(--color-primary);
   font-size: 10px;
@@ -396,25 +477,13 @@ button {
 }
 
 /* Data Preview Screen */
-.preview-screen {
-  padding-bottom: 16px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.preview-scroll {
-  overflow-y: auto;
-  padding: 0 0 16px;
-}
-
 .success-banner {
   display: flex;
   align-items: center;
-  gap: 13px;
-  padding: 16px;
+  gap: var(--spacing-12);
+  padding: var(--card-padding);
   background: var(--color-surface-card);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
   border: 1px solid var(--color-border);
 }
@@ -422,7 +491,7 @@ button {
 .success-icon {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   flex-shrink: 0;
   color: var(--color-primary);
   background: var(--color-secondary-pale);
@@ -430,29 +499,30 @@ button {
 
 .success-banner > span:last-child {
   display: grid;
-  gap: 4px;
+  gap: var(--spacing-4);
 }
 
 .preview-label {
-  margin: 22px 2px 10px;
+  margin: var(--spacing-20) var(--spacing-2) var(--spacing-12);
 }
 
 .fields-list {
   display: grid;
-  gap: 10px;
+  gap: var(--spacing-10);
+  padding: 0 var(--container-px);
 }
 
 .extracted-field-card {
-  padding: 14px 16px;
+  padding: var(--card-padding);
   background: var(--color-surface-card);
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--color-border);
 }
 
 .extracted-field-card span {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: var(--spacing-6);
   color: var(--color-text-muted);
   font-size: 10px;
   font-weight: 700;
@@ -474,35 +544,30 @@ button {
 
 .preview-actions {
   display: grid;
-  gap: 9px;
-  padding-top: 12px;
+  gap: var(--spacing-8);
+  padding: var(--spacing-12) var(--container-px) 0 var(--container-px);
   background: var(--color-bg-canvas);
   flex-shrink: 0;
 }
 
 /* Document Select Screen */
-.select-screen, .manual-screen, .history-screen, .settings-screen {
-  padding: 24px 20px 20px;
-  overflow-y: auto;
-}
-
 .screen-heading {
   text-align: center;
-  margin: 10px 10px 22px;
+  margin: var(--spacing-10) var(--spacing-10) var(--spacing-24);
 }
 
 .screen-heading.compact {
   text-align: left;
-  margin: 4px 2px 20px;
+  margin: var(--spacing-4) var(--spacing-2) var(--spacing-20);
 }
 
 .screen-heading h1 {
-  margin-top: 8px;
+  margin-top: var(--spacing-8);
   font-size: 26px;
 }
 
 .screen-heading p:last-child {
-  margin-top: 10px;
+  margin-top: var(--spacing-10);
   color: var(--color-text-muted);
   font-size: 12px;
   line-height: 1.5;
@@ -515,27 +580,27 @@ button {
   align-items: center;
   justify-content: center;
   margin: 0 auto;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   background: var(--color-secondary-pale);
   color: var(--color-primary);
 }
 
 .compact .section-icon {
-  margin: 0 0 14px;
+  margin: 0 0 var(--spacing-16);
 }
 
 .drop-zone {
   width: 100%;
   min-height: 150px;
   border: 1px dashed #caa9aa;
-  border-radius: 17px;
+  border-radius: var(--radius-lg);
   background: rgba(255, 248, 245, 0.7);
   color: var(--color-text-primary);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--spacing-8);
   cursor: pointer;
   transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
@@ -552,7 +617,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: var(--color-secondary-pale);
   color: var(--color-primary);
 }
@@ -569,10 +634,10 @@ button {
 .chosen-file {
   display: flex;
   align-items: center;
-  gap: 9px;
-  margin-top: 12px;
-  padding: 10px 12px;
-  border-radius: 10px;
+  gap: var(--spacing-8);
+  margin-top: var(--spacing-12);
+  padding: var(--spacing-10) var(--spacing-12);
+  border-radius: var(--radius-sm);
   background: var(--color-surface-card);
   color: var(--color-primary);
   font-size: 11px;
@@ -582,26 +647,26 @@ button {
 
 .select-actions {
   display: grid;
-  gap: 9px;
-  margin-top: 20px;
+  gap: var(--spacing-8);
+  margin-top: var(--spacing-20);
 }
 
 /* History and Settings Lists */
 .history-list, .settings-list {
   display: grid;
-  gap: 9px;
+  gap: var(--spacing-8);
 }
 
 .history-item, .settings-list button {
   width: 100%;
   min-height: 60px;
   border: 0;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   background: var(--color-surface-card);
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
+  gap: var(--spacing-10);
+  padding: var(--spacing-12) var(--spacing-14);
   color: var(--color-text-primary);
   text-align: left;
   box-shadow: var(--shadow-sm);
@@ -620,7 +685,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   background: var(--color-secondary-pale);
   color: var(--color-primary);
   flex-shrink: 0;
@@ -628,7 +693,7 @@ button {
 
 .history-copy {
   display: grid;
-  gap: 4px;
+  gap: var(--spacing-4);
   flex: 1;
   min-width: 0;
 }
@@ -660,7 +725,7 @@ button {
 .settings-list button > span {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: var(--spacing-12);
 }
 
 .settings-list button svg {
@@ -681,15 +746,15 @@ button {
   background: var(--color-surface-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: 14px;
+  padding: var(--card-padding);
   box-shadow: var(--shadow-sm);
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  margin-bottom: 10px;
+  gap: var(--spacing-6);
+  margin-bottom: var(--field-mb);
 }
 
 .form-group label {
@@ -710,7 +775,7 @@ input[type="tel"] {
   background: var(--color-surface-card);
   border: 1px solid var(--color-border);
   color: var(--color-text-primary);
-  padding: 8px 12px;
+  padding: var(--spacing-8) var(--spacing-12);
   border-radius: var(--radius-sm);
   font-size: 12px;
   outline: none;
@@ -739,8 +804,8 @@ input::placeholder {
 .status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
+  gap: var(--spacing-4);
+  padding: var(--spacing-2) var(--spacing-8);
   border-radius: var(--radius-full);
   font-size: 10px;
   font-weight: 600;
@@ -766,7 +831,7 @@ input::placeholder {
 
 /* Auth Screen Styles */
 .auth-container {
-  padding: 20px;
+  padding: var(--spacing-20);
   display: flex;
   flex-direction: column;
 }
@@ -775,14 +840,14 @@ input::placeholder {
   display: flex;
   background: var(--color-surface-inset);
   border-radius: var(--radius-sm);
-  padding: 3px;
-  margin-bottom: 16px;
+  padding: var(--spacing-2);
+  margin-bottom: var(--spacing-16);
   border: 1px solid var(--color-border);
 }
 
 .auth-tab-btn {
   flex: 1;
-  padding: 6px 12px;
+  padding: var(--spacing-6) var(--spacing-12);
   background: transparent;
   border: none;
   color: var(--color-text-muted);
@@ -790,7 +855,7 @@ input::placeholder {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
@@ -801,25 +866,19 @@ input::placeholder {
 }
 
 /* Onboarding Screen Styles */
-.onboarding-container {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-}
-
 .step-indicator {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
+  margin-bottom: var(--spacing-16);
+  padding-bottom: var(--spacing-12);
   border-bottom: 1px solid var(--color-border);
 }
 
 .step-bubble {
   width: 24px;
   height: 24px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: var(--color-surface-card);
   border: 1px solid var(--color-border);
   color: var(--color-text-muted);

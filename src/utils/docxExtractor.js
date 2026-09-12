@@ -1,106 +1,84 @@
 /**
- * docxExtractor.js — Client-Side DOCX Word Document Parser
- *
- * Extracts text from Microsoft Word (.docx / .doc) documents using
- * Mammoth (with table & heading preservation) and JSZip direct XML traversal.
+ * docxExtractor.js — Browser-native DOCX text extraction.
+ * Uses JSZip (already a dependency, works in browser) to unzip the .docx
+ * and parse word/document.xml directly.
+ * No mammoth, no Node.js dependencies.
  */
 
-import mammoth from 'mammoth';
 import JSZip from 'jszip';
 
-function htmlToFormattedText(html) {
-  if (!html) return '';
+/**
+ * Convert XML text nodes to plain text, preserving paragraph breaks.
+ */
+function xmlToText(xml) {
+  if (!xml) return '';
 
-  return html
-    // Table rows & cells
-    .replace(/<tr[^>]*>/gi, '\n')
-    .replace(/<td[^>]*>/gi, ' | ')
-    .replace(/<th[^>]*>/gi, ' | ')
-    .replace(/<\/td>|<\/th>/gi, '')
-    .replace(/<\/tr>/gi, ' |')
-    .replace(/<\/table>/gi, '\n\n')
-    // Headings
-    .replace(/<h[1-6][^>]*>(.*?)<\/h[1-6]>/gi, '\n\n$1\n')
-    // Paragraphs & list items
-    .replace(/<p[^>]*>/gi, '\n')
-    .replace(/<\/p>/gi, '')
-    .replace(/<li[^>]*>/gi, '\n• ')
-    .replace(/<\/li>/gi, '')
-    .replace(/<br\s*\/?>/gi, '\n')
-    // Strip remaining tags
+  let text = xml
+    // Paragraph breaks
+    .replace(/<w:p[ >]/g, '\n<w:p ')
+    .replace(/<w:p\/>/g, '\n')
+    // Tab characters
+    .replace(/<w:tab[^/]*/g, '\t')
+    // Line breaks
+    .replace(/<w:br[^/]*/g, '\n')
+    // Extract text from <w:t> tags (the actual text content in DOCX)
+    .replace(/<w:t[^>]*>([^<]*)<\/w:t>/g, '$1')
+    // Remove all remaining XML tags
     .replace(/<[^>]+>/g, '')
-    // HTML entity decoding
+    // Decode XML entities
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&nbsp;/g, ' ')
-    // Normalize newlines
+    .replace(/&apos;/g, "'")
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(parseInt(n)))
+    // Clean up whitespace
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+
+  return text;
 }
 
 /**
- * Extracts structured plain text from a DOCX ArrayBuffer.
+ * Extract text from a .docx ArrayBuffer using JSZip.
  *
  * @param {ArrayBuffer} arrayBuffer
  * @returns {Promise<string>}
  */
 export async function extractTextFromDocx(arrayBuffer) {
-  if (!arrayBuffer || arrayBuffer.byteLength === 0) {
-    return '';
-  }
-
-  // 1. Primary extractor: Mammoth convertToHtml for structure preservation (tables, headings, lists)
-  try {
-    const htmlResult = await mammoth.convertToHtml({ arrayBuffer });
-    if (htmlResult && htmlResult.value) {
-      const formatted = htmlToFormattedText(htmlResult.value);
-      if (formatted.length >= 10) {
-        return formatted;
-      }
-    }
-
-    const rawResult = await mammoth.extractRawText({ arrayBuffer });
-    if (rawResult && rawResult.value && rawResult.value.trim().length >= 10) {
-      return rawResult.value.trim();
-    }
-  } catch (err) {
-    console.warn('FillX: Mammoth DOCX parser notice, trying JSZip fallback:', err);
-  }
-
-  // 2. Secondary fallback extractor: JSZip direct XML traversal
   try {
     const zip = await JSZip.loadAsync(arrayBuffer);
-    const docXmlFile = zip.file('word/document.xml');
-    if (docXmlFile) {
-      const xmlText = await docXmlFile.async('string');
-      const text = xmlText
-        // Tables: rows and cells
-        .replace(/<w:tr[^>]*>/g, '\n')
-        .replace(/<w:tc[^>]*>/g, ' | ')
-        .replace(/<w:p[^>]*>/g, '\n')
-        .replace(/<w:tab\/>/g, '\t')
-        .replace(/<w:br\/>/g, '\n')
-        .replace(/<w:t[^>]*>(.*?)<\/w:t>/g, '$1')
-        .replace(/<[^>]+>/g, '')
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"')
-        .replace(/&apos;/g, "'")
-        .replace(/&#39;/g, "'")
-        .replace(/\n{3,}/g, '\n\n')
-        .trim();
 
-      if (text.length >= 10) {
-        return text;
-      }
+    const parts = [];
+
+    // Main document body
+    const docXml = zip.file('word/document.xml');
+    if (docXml) {
+      const xml = await docXml.async('string');
+      const text = xmlToText(xml);
+      if (text) parts.push(text);
     }
-  } catch (err) {
-    console.warn('FillX: JSZip DOCX fallback error:', err);
-  }
 
-  return '';
+    // Headers
+    const headerFiles = Object.keys(zip.files).filter(f => /word\/header\d*\.xml/.test(f));
+    for (const hf of headerFiles) {
+      const xml = await zip.file(hf).async('string');
+      const text = xmlToText(xml);
+      if (text && text.trim()) parts.push(text);
+    }
+
+    // Footers
+    const footerFiles = Object.keys(zip.files).filter(f => /word\/footer\d*\.xml/.test(f));
+    for (const ff of footerFiles) {
+      const xml = await zip.file(ff).async('string');
+      const text = xmlToText(xml);
+      if (text && text.trim()) parts.push(text);
+    }
+
+    return parts.join('\n\n').replace(/\n{3,}/g, '\n\n').trim();
+
+  } catch (err) {
+    console.warn('[FillX] DOCX extraction error:', err.message);
+    return '';
+  }
 }

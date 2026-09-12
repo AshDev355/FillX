@@ -71,6 +71,38 @@ function storageSet(key, value) {
   });
 }
 
+async function hashPassword(password) {
+  if (globalThis.crypto?.subtle) {
+    const bytes = new TextEncoder().encode(password);
+    const digest = await crypto.subtle.digest('SHA-256', bytes);
+    return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+  }
+  // Legacy browser fallback; new accounts use SHA-256 whenever available.
+  return btoa(password);
+}
+
+async function getRemoteAccount(email) {
+  if (typeof fetch !== 'function') return null;
+  try {
+    const response = await fetch(`http://localhost:3000/api/account?email=${encodeURIComponent(email)}`);
+    const data = response.ok ? await response.json() : null;
+    return data?.account || null;
+  } catch {
+    return null;
+  }
+}
+
+async function saveRemoteAccount(email, user, passwordHash, mode = 'sync') {
+  if (typeof fetch !== 'function') return;
+  try {
+    await fetch('http://localhost:3000/api/account', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, user, passwordHash, mode }),
+    });
+  } catch {}
+}
+
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 /**
@@ -133,11 +165,13 @@ export async function signUp(email, password, name = '') {
   };
 
   // 1. Store in multi-account database registry
+  const passwordHash = await hashPassword(password);
   await saveRegisteredUser(cleanEmail, {
     ...userObj,
-    passwordHash: btoa(password), // persistent credential storage
+    passwordHash,
     onboardingCompleted: false,
   });
+  await saveRemoteAccount(cleanEmail, userObj, passwordHash, 'register');
 
   // 2. Initialize clean, isolated profile for this user
   const initialProfile = {
@@ -191,7 +225,15 @@ export async function signIn(email, password) {
 
   // Look up account in registered users database
   const registeredUsers = await getRegisteredUsers();
-  const existingUserRecord = registeredUsers[cleanEmail];
+  let existingUserRecord = registeredUsers[cleanEmail];
+
+  if (!existingUserRecord) {
+    const remoteAccount = await getRemoteAccount(cleanEmail);
+    if (remoteAccount?.user) {
+      existingUserRecord = { ...remoteAccount.user, passwordHash: remoteAccount.passwordHash };
+      await saveRegisteredUser(cleanEmail, existingUserRecord);
+    }
+  }
 
   if (!existingUserRecord) {
     return {
@@ -202,8 +244,9 @@ export async function signIn(email, password) {
 
   // Verify password
   if (existingUserRecord.passwordHash) {
-    const providedHash = btoa(password);
-    if (existingUserRecord.passwordHash !== providedHash) {
+    const providedHash = await hashPassword(password);
+    const legacyHash = btoa(password);
+    if (existingUserRecord.passwordHash !== providedHash && existingUserRecord.passwordHash !== legacyHash) {
       return { success: false, error: 'Incorrect password. Please try again.' };
     }
   }

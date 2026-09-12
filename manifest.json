@@ -36,16 +36,15 @@
   ],
   "host_permissions": [
     "<all_urls>",
-    "http://localhost:3000/*"
+    "http://localhost:3000/*",
+    "https://*.vercel.app/*"
   ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
   "web_accessible_resources": [
     {
-      "resources": [
-        "dist/highlighter.css",
-        "icons/icon-16.png",
-        "icons/icon-48.png",
-        "icons/icon-128.png"
-      ],
+      "resources": ["dist/*", "icons/*"],
       "matches": ["<all_urls>"]
     }
   ]

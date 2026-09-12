@@ -43,7 +43,7 @@ function validate(formData, step) {
 // ─── Small reusable form field ────────────────────────────────────────────────
 function Field({ label, id, error, children }) {
   return (
-    <div className="form-group" style={{ marginBottom: 0 }}>
+    <div className="form-group" style={{ marginBottom: 'var(--form-gap)' }}>
       {label && <label htmlFor={id}>{label}</label>}
       {children}
       {error && (
@@ -227,7 +227,7 @@ export default function OnboardingScreen({ initialUser, onComplete }) {
   return (
     <div className="onboarding-container onboarding-scroll">
       {/* Header */}
-      <div style={{ marginBottom: 10 }}>
+      <div style={{ marginBottom: 'var(--spacing-10)' }}>
         <p className="eyebrow-text">SETUP WIZARD — STEP {step} OF {TOTAL_STEPS}</p>
         <h1 className="font-display" style={{ fontSize: 17, marginBottom: 4 }}>
           {headings[step - 1]}
@@ -239,8 +239,8 @@ export default function OnboardingScreen({ initialUser, onComplete }) {
 
       {/* ── STEP 1: Personal & Contact ── */}
       {step === 1 && (
-        <form onSubmit={handleNext} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <div style={{ display: 'flex', gap: 8 }}>
+        <form onSubmit={handleNext} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--form-gap)' }}>
+          <div style={{ display: 'flex', gap: 'var(--spacing-8)' }}>
             <Field label="First Name *" id="onb-fn" error={fieldErrors.firstName}>
               <input
                 id="onb-fn" name="firstName" type="text" required
@@ -275,7 +275,7 @@ export default function OnboardingScreen({ initialUser, onComplete }) {
             />
           </Field>
 
-          <PrimaryButton type="submit" icon={ArrowRight} style={{ marginTop: 10 }}>
+          <PrimaryButton type="submit" icon={ArrowRight} style={{ marginTop: 'var(--spacing-10)' }}>
             NEXT: ADDRESS & EXPERIENCE
           </PrimaryButton>
         </form>
@@ -283,9 +283,9 @@ export default function OnboardingScreen({ initialUser, onComplete }) {
 
       {/* ── STEP 2: Address + Professional ── */}
       {step === 2 && (
-        <form onSubmit={handleNext} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <form onSubmit={handleNext} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--form-gap)' }}>
           {/* Address section */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--brand-primary)', marginBottom: 2 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-4)', color: 'var(--brand-primary)', marginBottom: 'var(--spacing-2)' }}>
             <MapPin size={13} />
             <span style={{ fontSize: 11, fontWeight: 700 }}>Current Address *</span>
           </div>
@@ -299,7 +299,7 @@ export default function OnboardingScreen({ initialUser, onComplete }) {
             />
           </Field>
 
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 'var(--spacing-6)' }}>
             <Field label="" id="onb-city" error={fieldErrors.city}>
               <input
                 id="onb-city" name="city" type="text" required
@@ -316,7 +316,7 @@ export default function OnboardingScreen({ initialUser, onComplete }) {
             </Field>
           </div>
 
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 'var(--spacing-6)' }}>
             <Field label="" id="onb-zip" error={fieldErrors.zip}>
               <input
                 id="onb-zip" name="zip" type="text" required
@@ -334,12 +334,12 @@ export default function OnboardingScreen({ initialUser, onComplete }) {
           </div>
 
           {/* Work experience section */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--brand-primary)', marginTop: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-4)', color: 'var(--brand-primary)', marginTop: 'var(--spacing-4)' }}>
             <Briefcase size={13} />
             <span style={{ fontSize: 11, fontWeight: 700 }}>Work Experience (Optional)</span>
           </div>
 
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 'var(--spacing-6)' }}>
             <input
               name="company" type="text"
               placeholder="Current Company" value={formData.company} onChange={handleChange}
@@ -353,12 +353,12 @@ export default function OnboardingScreen({ initialUser, onComplete }) {
           </div>
 
           {/* Education section */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--brand-primary)', marginTop: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-4)', color: 'var(--brand-primary)', marginTop: 'var(--spacing-4)' }}>
             <GraduationCap size={13} />
             <span style={{ fontSize: 11, fontWeight: 700 }}>Education (Optional)</span>
           </div>
 
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 'var(--spacing-6)' }}>
             <input
               name="institution" type="text"
               placeholder="University / College" value={formData.institution} onChange={handleChange}
@@ -371,7 +371,7 @@ export default function OnboardingScreen({ initialUser, onComplete }) {
             />
           </div>
 
-          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+          <div style={{ display: 'flex', gap: 'var(--form-gap)', marginTop: 'var(--spacing-10)' }}>
             <OutlineButton type="button" icon={ArrowLeft} onClick={handleBack} style={{ flex: 1 }}>
               BACK
             </OutlineButton>
@@ -384,8 +384,8 @@ export default function OnboardingScreen({ initialUser, onComplete }) {
 
       {/* ── STEP 3: Links + Skills + Summary ── */}
       {step === 3 && (
-        <form onSubmit={handleFinish} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--brand-primary)', marginBottom: 2 }}>
+        <form onSubmit={handleFinish} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--form-gap)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-4)', color: 'var(--brand-primary)', marginBottom: 'var(--spacing-2)' }}>
             <Link2 size={13} />
             <span style={{ fontSize: 11, fontWeight: 700 }}>Online Profiles (Optional)</span>
           </div>
@@ -431,7 +431,7 @@ export default function OnboardingScreen({ initialUser, onComplete }) {
             />
           </Field>
 
-          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+          <div style={{ display: 'flex', gap: 'var(--form-gap)', marginTop: 'var(--spacing-10)' }}>
             <OutlineButton type="button" icon={ArrowLeft} onClick={handleBack} style={{ flex: 1 }}>
               BACK
             </OutlineButton>
@@ -446,7 +446,7 @@ export default function OnboardingScreen({ initialUser, onComplete }) {
             style={{
               background: 'none', border: 'none',
               color: 'var(--color-text-muted)', fontSize: 10,
-              cursor: 'pointer', textAlign: 'center', marginTop: 2,
+              cursor: 'pointer', textAlign: 'center', marginTop: 'var(--spacing-2)',
             }}
           >
             Skip optional fields →

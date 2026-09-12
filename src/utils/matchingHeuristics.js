@@ -15,6 +15,7 @@
  */
 
 import { MATCH_STATUS } from '../shared/messageTypes.js';
+import { isValidValueForField } from '../shared/fieldValueValidator.js';
 
 // ─── Text Normalisation ───────────────────────────────────────────────────────
 
@@ -88,7 +89,13 @@ function buildClueMap(field) {
   ].filter((s) => s.text.length > 0);
 
   const allClues = sources.map((s) => s.text).join(' ');
-  return { allClues, sources };
+  // Nearby text often contains labels for sibling fields. Keep it available
+  // for low-confidence context, but do not let it identify a field by itself.
+  const directClues = sources
+    .filter((source) => source.weight >= 0.60)
+    .map((source) => source.text)
+    .join(' ');
+  return { allClues, directClues, sources };
 }
 
 /**
@@ -107,6 +114,19 @@ function maxWeightForKeywords(sources, keywords) {
     }
   }
   return maxW;
+}
+
+function profileKeyForKeywords(keywords) {
+  const clue = keywords.join(' ');
+  if (clue.includes('email') || clue.includes('mail')) return 'personal.email';
+  if (clue.includes('phone') || clue.includes('mobile') || clue.includes('tel')) return 'personal.phone';
+  if (clue.includes('city') || clue.includes('town')) return 'address.city';
+  if (clue.includes('country') || clue.includes('nation')) return 'address.country';
+  if (clue.includes('birth') || clue.includes('dob')) return 'personal.dateOfBirth';
+  if (clue.includes('name')) return 'personal.fullName';
+  if (clue.includes('company') || clue.includes('employer')) return 'experience.0.company';
+  if (clue.includes('title') || clue.includes('position') || clue.includes('role')) return 'experience.0.title';
+  return keywords[0] || null;
 }
 
 // ─── Open-Ended Detection ─────────────────────────────────────────────────────
@@ -163,23 +183,26 @@ export function matchFieldsWithHeuristics(fields, profile) {
   const results = [];
 
   for (const field of fields) {
-    const { allClues, sources } = buildClueMap(field);
+    const { allClues, directClues, sources } = buildClueMap(field);
+    const directSources = sources.filter((source) => source.weight >= 0.60);
     const isOpenEnded = isOpenEndedFieldDescriptor(field);
 
     let status     = MATCH_STATUS.NO_MATCH;
     let value      = null;
     let confidence = 0;
+    let matchedProfileKey = null;
 
     // Helper: try to match, set value+confidence, return true on success
     function tryMatch(keywords, getValue, baseConfidence) {
       if (value !== null) return false; // already matched
-      const w = maxWeightForKeywords(sources, keywords);
+      const w = maxWeightForKeywords(directSources, keywords);
       if (w === 0) return false;
       const candidate = getValue();
-      if (candidate) {
+      if (candidate && isValidValueForField(field, candidate)) {
         value      = candidate;
         confidence = Math.min(0.99, baseConfidence * w);
         status     = MATCH_STATUS.MATCHED;
+        matchedProfileKey = profileKeyForKeywords(keywords);
         return true;
       }
       return false;
@@ -198,7 +221,7 @@ export function matchFieldsWithHeuristics(fields, profile) {
     // Also match autocomplete="given-name" regardless of keyword
     if (!value && field.autocomplete === 'given-name') {
       const v = personal.firstName || (personal.fullName ? personal.fullName.split(' ')[0] : null);
-      if (v) { value = v; confidence = 0.98; status = MATCH_STATUS.MATCHED; }
+      if (v) { value = v; confidence = 0.98; status = MATCH_STATUS.MATCHED; matchedProfileKey = 'personal.firstName'; }
     }
 
     // ── 2. Last Name ───────────────────────────────────────────────────────────
@@ -213,16 +236,17 @@ export function matchFieldsWithHeuristics(fields, profile) {
     if (!value && field.autocomplete === 'family-name') {
       const v = personal.lastName ||
         (personal.fullName ? personal.fullName.split(' ').slice(1).join(' ') : null);
-      if (v) { value = v; confidence = 0.98; status = MATCH_STATUS.MATCHED; }
+      if (v) { value = v; confidence = 0.98; status = MATCH_STATUS.MATCHED; matchedProfileKey = 'personal.lastName'; }
     }
 
     // ── 3. Full Name ───────────────────────────────────────────────────────────
     // Guard: must NOT be a username / company name field
-    if (!value && !containsAny(allClues, NAME_EXCLUSIONS)) {
+    if (!value && !containsAny(directClues, NAME_EXCLUSIONS)) {
       const nameKws = ['full name', 'your name', 'applicant name', 'candidate name', 'real name'];
       // Loose "name" — only if no exclusion word present
-      const looseMatch = allClues.includes('name') && !containsAny(allClues, NAME_EXCLUSIONS);
-      if (containsAny(allClues, nameKws) || field.autocomplete === 'name' || looseMatch) {
+      const looseMatch = directClues.includes('name') && !containsAny(directClues, NAME_EXCLUSIONS);
+      const isIdentityField = !['email', 'tel', 'date', 'url', 'number', 'select'].includes(field.type);
+      if (isIdentityField && (containsAny(directClues, nameKws) || field.autocomplete === 'name' || looseMatch)) {
         const v =
           personal.fullName ||
           custom.full_name || custom.fullname ||
@@ -230,15 +254,15 @@ export function matchFieldsWithHeuristics(fields, profile) {
             ? `${personal.firstName} ${personal.lastName}`
             : personal.firstName) ||
           null;
-        if (v) { value = v; confidence = 0.94; status = MATCH_STATUS.MATCHED; }
+        if (v && isValidValueForField(field, v, 'name')) { value = v; confidence = 0.94; status = MATCH_STATUS.MATCHED; matchedProfileKey = 'personal.fullName'; }
       }
     }
 
     // ── 4. Email ───────────────────────────────────────────────────────────────
     if (!value) {
-      if (field.type === 'email' || containsAny(allClues, ['email', 'e mail', 'mail']) || field.autocomplete === 'email') {
+      if (field.type === 'email' || containsAny(directClues, ['email', 'e mail', 'mail']) || field.autocomplete === 'email') {
         const v = personal.email || custom.email || custom.email_address || null;
-        if (v) { value = v; confidence = 0.99; status = MATCH_STATUS.MATCHED; }
+        if (v && isValidValueForField(field, v, 'email')) { value = v; confidence = 0.99; status = MATCH_STATUS.MATCHED; matchedProfileKey = 'personal.email'; }
       }
     }
 
@@ -450,6 +474,12 @@ export function matchFieldsWithHeuristics(fields, profile) {
       status = MATCH_STATUS.AMBIGUOUS;
     }
 
+    if (value && !isValidValueForField(field, value)) {
+      status = MATCH_STATUS.NO_MATCH;
+      value = null;
+      confidence = 0;
+    }
+
     // Strict No-Hallucination: if value is empty, force NO_MATCH
     if (!value) {
       status     = MATCH_STATUS.NO_MATCH;
@@ -463,6 +493,12 @@ export function matchFieldsWithHeuristics(fields, profile) {
       value,
       confidence,
       isOpenEnded,
+      profileKey: matchedProfileKey,
+      debug: {
+        clues: directClues,
+        matched: Boolean(value),
+        validationPassed: !value || isValidValueForField(field, value),
+      },
     });
   }
 

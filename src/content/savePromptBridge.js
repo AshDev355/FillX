@@ -219,6 +219,61 @@ export function attachSavePromptsToUnmatched(unmatchedFields) {
   });
 }
 
+/**
+ * Attaches blur listeners to already-MATCHED (autofilled) fields so that if
+ * the user corrects a value FillX filled in, the correction is persisted
+ * back to the profile too — not just brand-new answers for unmatched fields.
+ *
+ * Unlike attachSavePromptsToUnmatched, this does not show a yes/no prompt:
+ * the field is already part of the saved profile, so a correction to it is
+ * saved immediately and confirmed with a quiet toast.
+ *
+ * @param {Array<{ element: HTMLElement, label: string, fieldId: string, originalValue: string }>} matchedFields
+ */
+export function attachAutoSaveToMatched(matchedFields) {
+  if (!Array.isArray(matchedFields) || matchedFields.length === 0) return;
+
+  matchedFields.forEach(({ element, label, originalValue }) => {
+    if (!element) return;
+
+    element.addEventListener('blur', () => {
+      const value = (element.value || element.textContent || '').trim();
+      const original = (originalValue || '').trim();
+
+      // Only persist when the user actually changed the autofilled value.
+      if (value === original) return;
+
+      const key = normalizeLabel(label);
+
+      try {
+        if (typeof chrome !== 'undefined' && chrome.runtime?.id && chrome.runtime?.sendMessage) {
+          chrome.runtime.sendMessage(
+            {
+              action: 'SAVE_UNMATCHED_FIELD',
+              type: MESSAGE_TYPES.SAVE_CUSTOM_FIELD,
+              fieldKey: key,
+              fieldValue: value,
+              key,
+              value,
+              label,
+            },
+            () => {
+              if (chrome.runtime?.lastError) {
+                // Silently handled
+              }
+            }
+          );
+        }
+      } catch (e) {
+        // Ignored if context invalid
+      }
+
+      highlightMatched(element, { label: '✓ Updated' });
+      showToast(`✓ "${label}" updated in your FillX profile`);
+    });
+  });
+}
+
 export function cleanupSavePrompts() {
   removePrompt();
 }

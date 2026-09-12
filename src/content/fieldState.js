@@ -146,6 +146,36 @@ class FieldStateManager {
 
     return list;
   }
+
+  /**
+   * Returns a list of MATCHED field elements, labels, and the value FillX
+   * originally filled in for them. Used to detect and persist manual
+   * corrections a user makes to an already-autofilled field.
+   *
+   * @returns {Array<{ element: HTMLElement, label: string, fieldId: string, originalValue: string }>}
+   */
+  getMatchedFieldsForAutoSave() {
+    const list = [];
+
+    for (const field of this.detectedFields) {
+      const statusInfo = this.fieldStatusMap.get(field.fieldId);
+      const status = statusInfo ? statusInfo.status : MATCH_STATUS.NO_MATCH;
+
+      if (status === MATCH_STATUS.MATCHED) {
+        const element = fieldIdentifier.getElement(field.fieldId);
+        if (element) {
+          list.push({
+            element,
+            label: field.label || field.placeholder || field.name || 'Field',
+            fieldId: field.fieldId,
+            originalValue: statusInfo && statusInfo.value != null ? String(statusInfo.value) : '',
+          });
+        }
+      }
+    }
+
+    return list;
+  }
 }
 
 export const fieldState = new FieldStateManager();

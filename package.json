@@ -8,14 +8,11 @@
     "dev": "vite",
     "build:content": "node build.js",
     "build:popup": "vite build",
-    "build": "node build.js && vite build",
-    "test": "node test/unitTests.test.js"
+    "build": "node build.js && vite build"
   },
   "dependencies": {
     "jszip": "^3.10.1",
     "lucide-react": "^0.469.0",
-    "mammoth": "^1.12.1",
-    "pdfjs-dist": "^6.2.108",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

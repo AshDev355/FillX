@@ -4,7 +4,7 @@ import PrimaryButton from '../components/PrimaryButton';
 import OutlineButton from '../components/OutlineButton';
 import { MESSAGE_TYPES } from '../../shared/messageTypes.js';
 
-export default function FillDashboardScreen({ onNavigateToUpload, onNavigateToProfile, profile }) {
+export default function FillDashboardScreen({ onNavigateToUpload, onNavigateToProfile, onNavigateToProfiles, profile, activeProfileMeta }) {
   const [stats, setStats] = useState({
     totalFields: 0,
     matchedCount: 0,
@@ -195,37 +195,35 @@ export default function FillDashboardScreen({ onNavigateToUpload, onNavigateToPr
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span
-              style={{
-                width: 26,
-                height: 26,
-                borderRadius: '50%',
-                background: 'var(--color-secondary-pale)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--color-primary)',
-              }}
-            >
-              <FileText size={14} />
-            </span>
-            <span style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
-              Active Profile: <strong style={{ color: 'var(--color-text-primary)' }}>{profile.personal?.fullName || profile.personal?.firstName || 'Active'}</strong>
-            </span>
+            <div style={{
+              width: 30, height: 30, borderRadius: '50%',
+              background: activeProfileMeta?.color || 'var(--color-primary)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 14, flexShrink: 0,
+            }}>
+              {activeProfileMeta?.avatar || '👤'}
+            </div>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-primary)', lineHeight: 1.2 }}>
+                {activeProfileMeta?.name || profile.personal?.fullName || profile.personal?.firstName || 'My Profile'}
+              </div>
+              <div style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>
+                {profile.personal?.email || 'Active profile'}
+              </div>
+            </div>
           </div>
-          <button
-            onClick={onNavigateToProfile}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--color-primary)',
-              fontSize: 11,
-              fontWeight: 700,
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button onClick={onNavigateToProfiles} style={{
+              background: 'var(--color-secondary-pale)', border: 'none',
+              color: 'var(--color-primary)', fontSize: 10, fontWeight: 700,
+              cursor: 'pointer', borderRadius: 6, padding: '4px 8px',
+            }}>Switch</button>
+            <button onClick={onNavigateToProfile} style={{
+              background: 'transparent', border: 'none',
+              color: 'var(--color-primary)', fontSize: 10, fontWeight: 700,
               cursor: 'pointer',
-            }}
-          >
-            Edit
-          </button>
+            }}>Edit</button>
+          </div>
         </div>
       )}
 

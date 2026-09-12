@@ -14,8 +14,10 @@
 
 import { MESSAGE_TYPES } from '../shared/messageTypes.js';
 import { getProfile, saveCustomField, mergeProfile, getSettings, addHistoryItem } from '../utils/storage.js';
+import { getActiveProfile } from '../utils/profiles.js';
 import { matchFieldsWithHeuristics } from '../utils/matchingHeuristics.js';
 import { extractProfileFromDocument } from '../utils/documentParser.js';
+import { generateLocalAnswer } from '../shared/answerGenerator.js';
 
 /**
  * Updates extension action badge count for fields needing attention.
@@ -61,7 +63,20 @@ async function performMatch(fields, profile) {
     if (response.ok) {
       const data = await response.json();
       if (data && Array.isArray(data.results)) {
-        return data.results;
+        // Prefer deterministic local matches for canonical fields. This keeps
+        // an AI response from assigning a sibling field's value incorrectly.
+        const localResults = matchFieldsWithHeuristics(fields, profile);
+        const localById = new Map(localResults.map((result) => [result.fieldId, result]));
+        return data.results.map((result) => {
+          const localResult = localById.get(result.fieldId);
+          const field = fields.find((item) => item.fieldId === result.fieldId);
+          const clues = `${field?.label || ''} ${field?.name || ''} ${field?.id || ''} ${field?.placeholder || ''}`.toLowerCase();
+          const canonical = /name|username|email|mail|phone|mobile|tel|date|dob|birth|city|town|country|nation|address|zip|postal/.test(clues) ||
+            ['email', 'tel', 'date', 'url'].includes(String(field?.type || '').toLowerCase());
+          return localResult?.status === 'matched' || (canonical && localResult?.status === 'no_match')
+            ? localResult
+            : result;
+        });
       }
     }
   } catch (err) {
@@ -102,12 +117,7 @@ async function performGenerateAnswer(question, keywords, profile) {
   }
 
   // Local fallback synthesizer
-  const p = profile || {};
-  const exp = Array.isArray(p.experience) && p.experience[0];
-  const role = exp?.title || 'Software Professional';
-  const comp = exp?.company || 'my recent experience';
-
-  return `Throughout my career as a ${role} at ${comp}, I have developed deep expertise in ${keywords}. When addressing "${question}", I leverage these core competencies to deliver consistent, high-impact results. I look forward to applying my problem-solving skills and technical background to contribute effectively to your team.`;
+  return generateLocalAnswer(question, keywords, profile);
 }
 
 function isScriptableUrl(url) {
@@ -186,13 +196,38 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
               await updateBadge(fillRes.stats.fieldsNeedAttention, tab.id);
             }
 
-            // Record in history
-            await addHistoryItem({
-              type: 'FORM',
-              title: tab.title ? tab.title.slice(0, 30) : 'Autofilled Form',
-              meta: `Filled ${fillRes?.filledCount || 0} fields`,
-              status: 'COMPLETED',
-            });
+            // Record rich history entry
+            {
+              const stats = fillRes?.stats || {};
+              const hostname = (() => { try { return new URL(tab.url).hostname.replace(/^www\./, ''); } catch { return tab.url || 'Unknown'; } })();
+              const activeProfileData = await getProfile();
+              const profileName = activeProfileData?.personal?.fullName ||
+                `${activeProfileData?.personal?.firstName || ''} ${activeProfileData?.personal?.lastName || ''}`.trim() || 'Default';
+
+              await addHistoryItem({
+                type: 'FILL',
+                site: hostname,
+                title: tab.title ? tab.title.slice(0, 60) : hostname,
+                url: tab.url,
+                profileName,
+                totalFields: stats.totalFields || 0,
+                matchedCount: stats.matchedCount || 0,
+                ambiguousCount: stats.ambiguousCount || 0,
+                unmatchedCount: stats.unmatchedCount || 0,
+                filledCount: fillRes?.filledCount || 0,
+                // Store per-field detail for expandable view
+                fields: (results || []).slice(0, 30).map((r) => {
+                  const fd = fields.find((f) => f.fieldId === r.fieldId);
+                  return {
+                    fieldId: r.fieldId,
+                    label: fd?.label || fd?.name || fd?.placeholder || r.fieldId,
+                    name: fd?.name || '',
+                    status: r.status,
+                    value: r.status !== 'no_match' && r.value ? String(r.value).slice(0, 40) : '',
+                  };
+                }),
+              });
+            }
 
             sendResponse({
               success: true,

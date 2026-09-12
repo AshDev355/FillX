@@ -1,0 +1,12 @@
+{
+  "testemail@gmail.com": {
+    "user": {
+      "id": "usr_1789202505248_t08mww",
+      "email": "testemail@gmail.com",
+      "name": "Ayesha Tariq",
+      "createdAt": "2026-09-12T08:41:45.248Z"
+    },
+    "passwordHash": "96d8f983632c7abfeb9b081524e397c58c76b7b219a92bf9fcc399098cf0bd7b",
+    "updatedAt": "2026-09-12T08:41:46.872Z"
+  }
+}

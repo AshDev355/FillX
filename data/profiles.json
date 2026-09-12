@@ -1,0 +1,58 @@
+{
+  "testemail@gmail.com": {
+    "meta": {
+      "lastUpdated": "2026-09-12T10:35:35.247Z",
+      "sourceFileName": "Ayesha_AI_SE_CV_v2.pdf",
+      "onboardingCompleted": false,
+      "version": 1
+    },
+    "personal": {
+      "firstName": "Ayesha",
+      "lastName": "Tariq",
+      "fullName": "Ayesha Tariq",
+      "email": "testemail@gmail.com",
+      "phone": "2026082917480",
+      "dateOfBirth": "",
+      "nationality": ""
+    },
+    "address": {
+      "street": "Netsol Avenue",
+      "city": "X",
+      "state": "DN",
+      "zip": "54000",
+      "country": "United Kingdom"
+    },
+    "education": [
+      {
+        "institution": "University",
+        "degree": "MA",
+        "field": "Computer Science",
+        "endYear": "",
+        "gpa": ""
+      },
+      {
+        "institution": "University",
+        "degree": "MS",
+        "field": "Computer Science",
+        "endYear": "",
+        "gpa": ""
+      }
+    ],
+    "experience": [],
+    "skills": [
+      "Go",
+      "Vue",
+      "AI"
+    ],
+    "languages": [
+      "English"
+    ],
+    "links": {
+      "linkedin": "",
+      "github": "",
+      "portfolio": ""
+    },
+    "custom": {},
+    "customFields": {}
+  }
+}

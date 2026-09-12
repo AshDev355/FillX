@@ -56,9 +56,9 @@
   right: 0;
   z-index: 9999;
   width: 160px;
-  padding: 6px;
+  padding: var(--spacing-6);
   border: 1px solid var(--color-border);
-  border-radius: 13px;
+  border-radius: var(--radius-md);
   background: var(--color-surface-card);
   box-shadow: var(--shadow-lg);
   animation: menu-in 180ms ease-out both;
@@ -68,8 +68,8 @@
 .overflow-menu button {
   width: 100%;
   border: 0;
-  border-radius: 8px;
-  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-8) var(--spacing-10);
   background: transparent;
   color: var(--color-text-primary);
   text-align: left;
@@ -78,7 +78,7 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--spacing-8);
 }
 
 .overflow-menu button:hover {
